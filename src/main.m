@@ -1,8 +1,9 @@
-% --- Diff eq.
+% --- Cost
 % J(Θ) = 1/Nf*[∑(i=1,Nf)|ai+∇Û(ri|Θ)|^2]
 
 % --- Network
 % N {10,20,40,80} per layer, 8 hidden layers
+% 10 -> too small .. 80 -> overfitting .. 40 -> best (empirical)
 
 % --- Hyperparameters
 % BatchSize = 262144 -> for little available VRAM
@@ -14,3 +15,8 @@
 % Initializer = Glorot uniform
 % x Transform (preprocessing to fit r) = MinMax along each component
 % y Transform (preprocessing to fit a) = uniform MinMax across all components
+
+% PINN-GM-III
+%   INPUT: x,y,z
+%   FEATURE ENGINEERING:
+%   NEURAL NETWORK
