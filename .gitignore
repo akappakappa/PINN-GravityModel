@@ -1,6 +1,6 @@
 # Irrelevant or too big files (e.g. data, models, etc.)
 latex/
-src/data/
+#src/data/
 
 # Environment
 .vscode/
