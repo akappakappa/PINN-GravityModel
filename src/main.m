@@ -75,7 +75,7 @@ if LOG, disp(newline), end
 % DATASET - Load
 pyFile = py.open(choiceDataset, "rb");
 pyData = py.pickle.load(pyFile);
-masconPoints = double(pyData{1})';
+masconPoints = double(pyData{1});
 if LOG, disp("[INFO] Received 'masconPoints' of size: " + string(mat2str(size(masconPoints))) + ", type: " + class(masconPoints)), end
 masconMasses = double(pyData{2});
 if LOG, disp("[INFO] Received 'masconMasses' of size: " + string(mat2str(size(masconMasses))) + ", type: " + class(masconMasses)), end
