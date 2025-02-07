@@ -9,6 +9,11 @@ MATLAB R2024b is used for the implementation of the project.
     - [ ] Apply further modifications proposed in ["Physics-Informed Neural Network Gravity Model Generation III"](https://arxiv.org/abs/2312.10257).
 - [ ] Ask professor for further guidance...
 
+### Instructions
+Interactive prompt with `src/main.m`, otherwise:
+1. Generate dataset using `src/data/run.m` if needed, or just used pre-included dataset.
+2. Perform training by running `src/training/run.m`.
+
 ### Authors
 Computer Engineering @ Unversity Of Padua, Italy:
 - [Andrea Valentinuzzi](github.com/akappakappa)

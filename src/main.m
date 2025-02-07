@@ -31,54 +31,25 @@
 
 % PINN-GravityModel
 % File: main.m
-%     entrypoint for Dataset choice, Parameters choice and Training
+%     entrypoint for Data and Training
 % Authors:
 %     Andrea Valentinuzzi 2090451
-%     Giovanni Brejc XXXXXXX
+%     Giovanni Brejc 2096046
 
-% Initialize MATLAB
 close all; clear all; clc;
-LOG = input("Display LOGs? (y/N)", "s");
-switch LOG
+DEBUG = true;
+
+% Options for the dataset
+optDataset = input("Generate new dataset? (y/N)", "s");
+switch optDataset
     case {"y", "Y"}
-        LOG = true;
+        disp("Generating new dataset...");
+        run("src/data/runData.m");
     case {"n", "N", []}
-        LOG = false;
+        dataset = load("src/data/dataset.mat");
     otherwise
-        disp("[WARN] Assuming 'NO'");
-        LOG = false;
+        error("Invalid option");
 end
 
-% DATASET - Choose
-choiceDataset = input("Choose the dataset on which to perform training:" + ...
-    "\n1. Earth" + ...
-    "\n2. Moon" + ...
-    "\n3. Eros (default)", ...
-    "s");
-switch choiceDataset
-    case {"1", "Earth", "earth"}
-        choiceDataset = "src/data/earth.pk";
-    case {"2", "Moon", "moon"}
-        choiceDataset = "src/data/moon.pk";
-    case {"3", "Eros", "eros", []}
-        choiceDataset = "src/data/eros.pk";
-    otherwise
-        disp("[WARN] Input changed by default to 'Eros'");
-        choiceDataset = "src/data/eros.pk";
-end
-if LOG, disp("[INFO] Dataset: " + choiceDataset), end
-if ~exist(choiceDataset, "file")
-    error("[ERROR] Dataset file " + choiceDataset + " NOT present, exiting..");
-end
-if LOG, disp(newline), end
-
-% DATASET - Load
-pyFile = py.open(choiceDataset, "rb");
-pyData = py.pickle.load(pyFile);
-masconPoints = double(pyData{1});
-if LOG, disp("[INFO] Received 'masconPoints' of size: " + string(mat2str(size(masconPoints))) + ", type: " + class(masconPoints)), end
-masconMasses = double(pyData{2});
-if LOG, disp("[INFO] Received 'masconMasses' of size: " + string(mat2str(size(masconMasses))) + ", type: " + class(masconMasses)), end
-masconName = string(pyData{3});
-if LOG, disp("[INFO] Loaded mascons for " + masconName + "!" + newline), end
-clear pyFile pyData;
+% Run training in training/run.m
+run("src/training/runTraining.m");
