@@ -16,17 +16,6 @@
 % x Transform (preprocessing to fit r) = MinMax along each component
 % y Transform (preprocessing to fit a) = uniform MinMax across all components
 
-% PINN-GM-III
-%   INPUT: x,y,z
-%   FEATURE ENGINEERING:
-%   NEURAL NETWORK
-
-% open data/eros.pk file, which represents a mascon model of Eros asteroid
-%   the original python script suggests:
-%   with open("Itokawa_mascon.pk", "rb") as file:
-%       points, masses, name = pk.load(file)
-%   translate now to matlab
-
 % -------------------------------------------------------------------------
 
 % PINN-GravityModel
@@ -39,7 +28,7 @@
 close all; clear all; clc;
 DEBUG = true;
 
-% Options for the dataset
+% Dataset
 optDataset = input("Generate new dataset? (y/N)", "s");
 switch optDataset
     case {"y", "Y"}
@@ -50,6 +39,7 @@ switch optDataset
     otherwise
         error("Invalid option");
 end
+clear optDataset;
 
-% Run training in training/run.m
+% Training
 run("src/training/runTraining.m");
