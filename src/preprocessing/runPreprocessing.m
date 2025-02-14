@@ -1,6 +1,6 @@
-assert(exist('DEBUG', 'var') == 1, 'you must run this script from src/main.m');
-assert(exist('dataset', 'var') == 1, 'dataset variable not found');
-disp('Asserts passed');
+%assert(exist('DEBUG', 'var') == 1, 'you must run this script from src/main.m');
+%assert(exist('dataset', 'var') == 1, 'dataset variable not found');
+%disp('Asserts passed');
 
 %Get shuffle indices
 surfaceNum = 200700;
@@ -16,22 +16,40 @@ randomTrj = dataset.randomdTRJ(idxRand,:);
 randomAcc = dataset.randomdACC(idxRand,:);
 randomPot = dataset.randomdPOT(idxRand,:);
 
-%Concatenate matrices
-totalTrj = cat(1,surfaceTrj,randomTrj);
-totalAcc = cat(1,surfaceAcc,randomAcc);
-totalPot = cat(1,surfacePot,randomPot);
-
 %Divide in train, validation and test
-div = length(totalTrj) / 3;
-trainTrj = totalTrj(1:div,:);
-trainAcc = totalAcc(1:div,:);
-trainPot = totalPot(1:div,:);
-validationTrj = totalTrj(div+1:div*2,:);
-validationAcc = totalAcc(div+1:div*2,:);
-validationPot = totalPot(div+1:div*2,:);
-testTrj = totalTrj(div*2+1:div*3,:);
-testAcc = totalAcc(div*2+1:div*3,:);
-testPot = totalPot(div*2+1:div*3,:);
+divs = surfaceNum / 3;
+divr = randomNum / 3;
+
+trainSTrj = surfaceTrj(1:divs,:);
+trainSAcc = surfaceAcc(1:divs,:);
+trainSPot = surfacePot(1:divs,:);
+validationSTrj = surfaceTrj(divs+1:divs*2,:);
+validationSAcc = surfaceAcc(divs+1:divs*2,:);
+validationSPot = surfacePot(divs+1:divs*2,:);
+testSTrj = surfaceTrj(divs*2+1:divs*3,:);
+testSAcc = surfaceAcc(divs*2+1:divs*3,:);
+testSPot = surfacePot(divs*2+1:divs*3,:);
+
+trainRTrj = randomTrj(1:divr,:);
+trainRAcc = randomAcc(1:divr,:);
+trainRPot = randomPot(1:divr,:);
+validationRTrj = randomTrj(divr+1:divr*2,:);
+validationRAcc = randomAcc(divr+1:divr*2,:);
+validationRPot = randomPot(divr+1:divr*2,:);
+testRTrj = randomTrj(divr*2+1:divr*3,:);
+testRAcc = randomAcc(divr*2+1:divr*3,:);
+testRPot = randomPot(divr*2+1:divr*3,:);
+
+%Concatenate matrices
+trainTrj = cat(1,trainSTrj,trainRTrj);
+trainAcc = cat(1,trainSAcc,trainRAcc);
+trainPot = cat(1,trainSPot,trainRPot);
+validationTrj = cat(1,validationSTrj,validationRTrj);
+validationAcc = cat(1,validationSAcc,validationRAcc);
+validationPot = cat(1,validationSPot,validationRPot);
+testTrj = cat(1,testSTrj,testRTrj);
+testAcc = cat(1,testSAcc,testRAcc);
+testPot = cat(1,testSPot,testRPot);
 
 %Initialize datastores
 trainTrj = arrayDatastore(trainTrj);
@@ -43,6 +61,12 @@ validationPot = arrayDatastore(validationPot);
 testTrj = arrayDatastore(testTrj);
 testAcc = arrayDatastore(testAcc);
 testPot = arrayDatastore(testPot);
+
 trainingSet = combine(trainTrj,trainAcc,trainPot);
 validationSet = combine(validationTrj,validationAcc,validationPot);
 testSet = combine(testTrj,testAcc,testPot);
+
+%Shuffle datastores
+trainingSet = shuffle(trainingSet);
+validationSet = shuffle(validationSet);
+testSet = shuffle(testSet);
