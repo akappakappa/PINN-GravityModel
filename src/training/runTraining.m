@@ -3,12 +3,24 @@
 %disp('Asserts passed');
 
 % NETWORK
+%layers = [
+%    featureInputLayer(3, "Name", "in")
+%    fullyConnectedLayer(20, "Name", "fc1")
+%    fullyConnectedLayer(20, "Name", "fc2")
+%    fullyConnectedLayer(20, "Name", "fc3")
+%    fullyConnectedLayer(1, "Name", "fc4")];
 layers = [
-    featureInputLayer(3, "Name", "in")
-    fullyConnectedLayer(20, "Name", "fc1")
-    fullyConnectedLayer(20, "Name", "fc2")
-    fullyConnectedLayer(1, "Name", "fc3")
-    sigmoidLayer("Name", "out")];
+    featureInputLayer(3,"Name","featureinput")
+    fullyConnectedLayer(20,"Name","fc")
+    geluLayer("Name","tanh")
+    fullyConnectedLayer(20,"Name","fc_1")
+    geluLayer("Name","tanh_1")
+    fullyConnectedLayer(20,"Name","fc_2")
+    geluLayer("Name","tanh_2")
+    fullyConnectedLayer(20,"Name","fc_3")
+    geluLayer("Name","tanh_3")
+    fullyConnectedLayer(1,"Name","fc_4")];
+
 net = dlnetwork(layers);
 net = initialize(net);
 %if true == DEBUG, plot(net), end
@@ -24,12 +36,12 @@ net = initialize(net);
 %netTrained = trainnet(xTrain, yTrain, net, "mse", options);
 
 % Loss
-function [loss, gradients, state] = modelLoss(net, X, T)
+function [loss, gradients, state] = modelLoss(net, X, T, U)
     % Forward
     [Y, state] = forward(net, X);
     % Loss (TODO: PINN)
-    loss = mse(Y, T);
-    % Gradients\
+    loss = mse(Y, U);
+    % Gradients
     gradients = dlgradient(loss, net.Learnables);
 end
 
@@ -40,16 +52,16 @@ end
 
 % Options
 numEpochs = 400;
-miniBatchSize = 4;
+miniBatchSize = 50;
 learnRate = 0.0001;
 
-function [X, T, Y] = preprocessMiniBatch(dataX, dataT, dataY)
+function [X, T, U] = preprocessMiniBatch(dataX, dataT, dataU)
     X = cat(1, dataX{:});
     X = dlarray(X,'BC');
     T = cat(1, dataT{:});
     T = dlarray(T,'BC');
-    Y = cat(1, dataY{:});
-    Y = dlarray(Y,'BC');
+    U = cat(1, dataU{:});
+    U = dlarray(U,'BC');
 end
 
 mbq = minibatchqueue(trainingSet, ...
@@ -57,7 +69,7 @@ mbq = minibatchqueue(trainingSet, ...
     MiniBatchSize= miniBatchSize);
 
 % Iterations
-numObservationsTrain = 39; % size(xTrain, 1);
+numObservationsTrain = 96900; % size(xTrain, 1);
 numIterationsPerEpoch = floor(numObservationsTrain / miniBatchSize);
 numIterations = numEpochs * numIterationsPerEpoch;
 
@@ -78,9 +90,9 @@ while epoch < numEpochs && ~monitor.Stop
     while hasdata(mbq) && ~monitor.Stop
         iteration = iteration + 1;
         % Read mini-batch.
-        [X, T, Y] = next(mbq);
+        [X, T, U] = next(mbq);
         % Eval and update state
-        [loss, gradients, state] = dlfeval(@modelLoss, net, X, Y);
+        [loss, gradients, state] = dlfeval(@modelLoss, net, X, T, U);
         net.State = state;
         % Update net
         updateFcn = @(parameters, gradients) sgdStep(parameters, gradients, learnRate);

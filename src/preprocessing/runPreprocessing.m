@@ -1,6 +1,8 @@
 %assert(exist('DEBUG', 'var') == 1, 'you must run this script from src/main.m');
 %assert(exist('dataset', 'var') == 1, 'dataset variable not found');
 %disp('Asserts passed');
+dataset = load("src/data/dataset.mat");
+
 
 %Get shuffle indices
 surfaceNum = 200700;
@@ -15,6 +17,7 @@ surfacePot = dataset.surfacePOT(idxSurf,:);
 randomTrj = dataset.randomdTRJ(idxRand,:);
 randomAcc = dataset.randomdACC(idxRand,:);
 randomPot = dataset.randomdPOT(idxRand,:);
+
 
 %Divide in train, validation and test
 divs = surfaceNum / 3;
@@ -50,6 +53,25 @@ validationPot = cat(1,validationSPot,validationRPot);
 testTrj = cat(1,testSTrj,testRTrj);
 testAcc = cat(1,testSAcc,testRAcc);
 testPot = cat(1,testSPot,testRPot);
+
+%Min-Max scale
+%minTrj = min(trainTrj);
+%maxTrj = max(trainTrj);
+%minAcc = min(trainAcc);
+%maxAcc = max(trainAcc);
+%minPot = min(trainPot);
+%maxPot = max(trainPot);
+
+%trainTrj = rescale(trainTrj,"InputMax",maxTrj,"InputMin",minTrj);
+%validationTrj = rescale(validationTrj,"InputMax",maxTrj,"InputMin",minTrj);
+%testTrj = rescale(testTrj,"InputMax",maxTrj,"InputMin",minTrj);
+%trainAcc = rescale(trainAcc,"InputMax",maxAcc,"InputMin",minAcc);
+%validationAcc = rescale(validationAcc,"InputMax",maxAcc,"InputMin",minAcc);
+%testAcc = rescale(testAcc,"InputMax",maxAcc,"InputMin",minAcc);
+%trainPot = rescale(trainPot,"InputMax",maxPot,"InputMin",minPot);
+%validationPot = rescale(validationPot,"InputMax",maxPot,"InputMin",minPot);
+%testPot = rescale(testPot,"InputMax",maxPot,"InputMin",minPot);
+
 
 %Initialize datastores
 trainTrj = arrayDatastore(trainTrj);
