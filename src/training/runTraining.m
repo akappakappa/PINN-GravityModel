@@ -11,6 +11,7 @@
 %    fullyConnectedLayer(1, "Name", "fc4")];
 layers = [
     featureInputLayer(3,"Name","featureinput")
+    geluLayer("Name","gelu")
     fullyConnectedLayer(20,"Name","fc")
     geluLayer("Name","tanh")
     fullyConnectedLayer(20,"Name","fc_1")
