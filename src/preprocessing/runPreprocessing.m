@@ -1,93 +1,114 @@
-dataset = load("src/data/dataset.mat");
-DEBUG = false;
+assert(1 == exist('DEBUG', 'var'), 'you must run this script from src/main.m');
+assert(1 == exist('dataset', 'var'), 'dataset variable not found');
 
-assert(exist('DEBUG', 'var') == 1, 'you must run this script from src/main.m');
-assert(exist('dataset', 'var') == 1, 'dataset variable not found');
-disp('Asserts passed');
+% Variables
+[tmp, train, test, validation, minmax, datastore] = deal(struct);
 
-% Get shuffle indices
-surfaceNum = size(dataset.surfaceTRJ, 1);
-randomNum = size(dataset.randomdTRJ, 1);
-idxSurf = randperm(surfaceNum);
-idxRand = randperm(randomNum);
+% Random indices
+tmp.ssNum = size(dataset.surfaceTRJ, 1);
+tmp.rrNum = size(dataset.randomdTRJ, 1);
+tmp.ssIdx = randperm(tmp.ssNum);
+tmp.rrIdx = randperm(tmp.rrNum);
 
-% Shuffle values
-surfaceTrj = dataset.surfaceTRJ(idxSurf, :);
-surfaceAcc = dataset.surfaceACC(idxSurf, :);
-surfacePot = dataset.surfacePOT(idxSurf, :);
-randomTrj = dataset.randomdTRJ(idxRand, :);
-randomAcc = dataset.randomdACC(idxRand, :);
-randomPot = dataset.randomdPOT(idxRand, :);
+% Shuffle according to random indices
+tmp.ssTrj = dataset.surfaceTRJ(tmp.ssIdx, :);
+tmp.ssAcc = dataset.surfaceACC(tmp.ssIdx, :);
+tmp.ssPot = dataset.surfacePOT(tmp.ssIdx, :);
+tmp.rrTrj = dataset.randomdTRJ(tmp.rrIdx, :);
+tmp.rrAcc = dataset.randomdACC(tmp.rrIdx, :);
+tmp.rrPot = dataset.randomdPOT(tmp.rrIdx, :);
 
-% Divide in train, validation and test
-divs = floor(surfaceNum / 3);
-divr = floor(randomNum / 3);
+% Split quantities percentages
+tmp.qnt = [0.6, 0.2, 0.2];
+assert(1 == sum(tmp.qnt), 'split percentages must sum to 1');
+assert(0 == sum(tmp.qnt == 0), 'split percentages must be greater than 0');
+train.ssDiv = floor(tmp.ssNum * tmp.qnt(1));
+train.rrDiv = floor(tmp.rrNum * tmp.qnt(1));
+validation.ssDiv = train.ssDiv + floor(tmp.ssNum * tmp.qnt(2));
+validation.rrDiv = train.rrDiv + floor(tmp.rrNum * tmp.qnt(2));
+% --> test division is the remaining data :end <--
+% --> test division is the remaining data :end <--
 
-trainSTrj = surfaceTrj(1:divs, :);
-trainSAcc = surfaceAcc(1:divs, :);
-trainSPot = surfacePot(1:divs, :);
-validationSTrj = surfaceTrj(divs + 1:divs * 2, :);
-validationSAcc = surfaceAcc(divs + 1:divs * 2, :);
-validationSPot = surfacePot(divs + 1:divs * 2, :);
-testSTrj = surfaceTrj(divs * 2 + 1:end, :);
-testSAcc = surfaceAcc(divs * 2 + 1:end, :);
-testSPot = surfacePot(divs * 2 + 1:end, :);
-
-trainRTrj = randomTrj(1:divr, :);
-trainRAcc = randomAcc(1:divr, :);
-trainRPot = randomPot(1:divr, :);
-validationRTrj = randomTrj(divr + 1:divr * 2, :);
-validationRAcc = randomAcc(divr + 1:divr * 2, :);
-validationRPot = randomPot(divr + 1:divr * 2, :);
-testRTrj = randomTrj(divr * 2 + 1:end, :);
-testRAcc = randomAcc(divr * 2 + 1:end, :);
-testRPot = randomPot(divr * 2 + 1:end, :);
+% Split into training, validation and test sets
+train.ssTrj      = tmp.ssTrj(1                   :train.ssDiv     , :);
+train.ssAcc      = tmp.ssAcc(1                   :train.ssDiv     , :);
+train.ssPot      = tmp.ssPot(1                   :train.ssDiv     , :);
+train.rrTrj      = tmp.rrTrj(1                   :train.rrDiv     , :);
+train.rrAcc      = tmp.rrAcc(1                   :train.rrDiv     , :);
+train.rrPot      = tmp.rrPot(1                   :train.rrDiv     , :);
+validation.ssTrj = tmp.ssTrj(train.ssDiv + 1     :validation.ssDiv, :);
+validation.ssAcc = tmp.ssAcc(train.ssDiv + 1     :validation.ssDiv, :);
+validation.ssPot = tmp.ssPot(train.ssDiv + 1     :validation.ssDiv, :);
+validation.rrTrj = tmp.rrTrj(train.rrDiv + 1     :validation.rrDiv, :);
+validation.rrAcc = tmp.rrAcc(train.rrDiv + 1     :validation.rrDiv, :);
+validation.rrPot = tmp.rrPot(train.rrDiv + 1     :validation.rrDiv, :);
+test.ssTrj       = tmp.ssTrj(validation.ssDiv + 1:end             , :);
+test.ssAcc       = tmp.ssAcc(validation.ssDiv + 1:end             , :);
+test.ssPot       = tmp.ssPot(validation.ssDiv + 1:end             , :);
+test.rrTrj       = tmp.rrTrj(validation.rrDiv + 1:end             , :);
+test.rrAcc       = tmp.rrAcc(validation.rrDiv + 1:end             , :);
+test.rrPot       = tmp.rrPot(validation.rrDiv + 1:end             , :);
 
 % Concatenate matrices
-trainTrj = cat(1, trainSTrj, trainRTrj);
-trainAcc = cat(1, trainSAcc, trainRAcc);
-trainPot = cat(1, trainSPot, trainRPot);
-validationTrj = cat(1, validationSTrj, validationRTrj);
-validationAcc = cat(1, validationSAcc, validationRAcc);
-validationPot = cat(1, validationSPot, validationRPot);
-testTrj = cat(1, testSTrj, testRTrj);
-testAcc = cat(1, testSAcc, testRAcc);
-testPot = cat(1, testSPot, testRPot);
+train.Trj      = cat(1, train.ssTrj, train.rrTrj);
+train.Acc      = cat(1, train.ssAcc, train.rrAcc);
+train.Pot      = cat(1, train.ssPot, train.rrPot);
+validation.Trj = cat(1, validation.ssTrj, validation.rrTrj);
+validation.Acc = cat(1, validation.ssAcc, validation.rrAcc);
+validation.Pot = cat(1, validation.ssPot, validation.rrPot);
+test.Trj       = cat(1, test.ssTrj, test.rrTrj);
+test.Acc       = cat(1, test.ssAcc, test.rrAcc);
+test.Pot       = cat(1, test.ssPot, test.rrPot);
+
+% Min-Max scaling
+[minmax.minTrj, minmax.maxTrj, minmax.minAcc, minmax.maxAcc, minmax.minPot, minmax.maxPot] ...
+    = deal(min(train.Trj), max(train.Trj), min(min(train.Acc)), max(max(train.Acc)), min(train.Pot), max(train.Pot));
+train.Trj      = rescale(train.Trj, "InputMax", minmax.maxTrj, "InputMin", minmax.minTrj);
+train.Acc      = rescale(train.Acc, "InputMax", minmax.maxAcc, "InputMin", minmax.minAcc);
+train.Pot      = rescale(train.Pot, "InputMax", minmax.maxPot, "InputMin", minmax.minPot);
+validation.Trj = rescale(validation.Trj, "InputMax", minmax.maxTrj, "InputMin", minmax.minTrj);
+validation.Acc = rescale(validation.Acc, "InputMax", minmax.maxAcc, "InputMin", minmax.minAcc);
+validation.Pot = rescale(validation.Pot, "InputMax", minmax.maxPot, "InputMin", minmax.minPot);
+test.Trj       = rescale(test.Trj, "InputMax", minmax.maxTrj, "InputMin", minmax.minTrj);
+test.Acc       = rescale(test.Acc, "InputMax", minmax.maxAcc, "InputMin", minmax.minAcc);
+test.Pot       = rescale(test.Pot, "InputMax", minmax.maxPot, "InputMin", minmax.minPot);
+
+if true == DEBUG
+    dbg = struct;
+    dbg.train.Trj      = train.Trj;
+    dbg.train.Acc      = train.Acc;
+    dbg.train.Pot      = train.Pot;
+    dbg.validation.Trj = validation.Trj;
+    dbg.validation.Acc = validation.Acc;
+    dbg.validation.Pot = validation.Pot;
+    dbg.test.Trj       = test.Trj;
+    dbg.test.Acc       = test.Acc;
+    dbg.test.Pot       = test.Pot;
+end
+
+% Datastores
+datastore.split = [size(train.Trj, 1), size(validation.Trj, 1), size(test.Trj, 1)];
+datastore.train      = shuffle(combine(arrayDatastore(train.Trj),      arrayDatastore(train.Acc),      arrayDatastore(train.Pot)));
+datastore.validation = shuffle(combine(arrayDatastore(validation.Trj), arrayDatastore(validation.Acc), arrayDatastore(validation.Pot)));
+datastore.test       = shuffle(combine(arrayDatastore(test.Trj),       arrayDatastore(test.Acc),       arrayDatastore(test.Pot)));
+
+clear tmp train test validation minmax;
+
 
 % Min-Max scale
-minTrj = min(trainTrj);
-maxTrj = max(trainTrj);
-minAcc = min(min(trainAcc));
-maxAcc = max(max(trainAcc));
+%minTrj = min(trainTrj);
+%maxTrj = max(trainTrj);
+%minAcc = min(min(trainAcc));
+%maxAcc = max(max(trainAcc));
 %minPot = min(trainPot);
 %maxPot = max(trainPot);
 
-trainTrj = rescale(trainTrj, "InputMax", maxTrj, "InputMin", minTrj);
-validationTrj = rescale(validationTrj,"InputMax",maxTrj,"InputMin",minTrj);
-testTrj = rescale(testTrj,"InputMax",maxTrj,"InputMin",minTrj);
-trainAcc = rescale(trainAcc,"InputMax",maxAcc,"InputMin",minAcc);
-validationAcc = rescale(validationAcc,"InputMax",maxAcc,"InputMin",minAcc);
-testAcc = rescale(testAcc,"InputMax",maxAcc,"InputMin",minAcc);
+%trainTrj = rescale(trainTrj, "InputMax", maxTrj, "InputMin", minTrj);
+%validationTrj = rescale(validationTrj,"InputMax",maxTrj,"InputMin",minTrj);
+%testTrj = rescale(testTrj,"InputMax",maxTrj,"InputMin",minTrj);
+%trainAcc = rescale(trainAcc,"InputMax",maxAcc,"InputMin",minAcc);
+%validationAcc = rescale(validationAcc,"InputMax",maxAcc,"InputMin",minAcc);
+%testAcc = rescale(testAcc,"InputMax",maxAcc,"InputMin",minAcc);
 %trainPot = rescale(trainPot,"InputMax",maxPot,"InputMin",minPot);
 %validationPot = rescale(validationPot,"InputMax",maxPot,"InputMin",minPot);
 %testPot = rescale(testPot,"InputMax",maxPot,"InputMin",minPot);
-
-% Initialize datastores
-trainTrj = arrayDatastore(trainTrj);
-trainAcc = arrayDatastore(trainAcc);
-trainPot = arrayDatastore(trainPot);
-validationTrj = arrayDatastore(validationTrj);
-validationAcc = arrayDatastore(validationAcc);
-validationPot = arrayDatastore(validationPot);
-testTrj = arrayDatastore(testTrj);
-testAcc = arrayDatastore(testAcc);
-testPot = arrayDatastore(testPot);
-
-trainingSet = combine(trainTrj, trainAcc, trainPot);
-validationSet = combine(validationTrj, validationAcc, validationPot);
-testSet = combine(testTrj, testAcc, testPot);
-
-% Shuffle datastores
-trainingSet = shuffle(trainingSet);
-validationSet = shuffle(validationSet);
-testSet = shuffle(testSet);
