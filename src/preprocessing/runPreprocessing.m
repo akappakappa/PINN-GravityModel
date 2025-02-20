@@ -93,22 +93,3 @@ datastore.validation = shuffle(combine(arrayDatastore(validation.Trj), arrayData
 datastore.test       = shuffle(combine(arrayDatastore(test.Trj),       arrayDatastore(test.Acc),       arrayDatastore(test.Pot)));
 
 clear tmp train test validation minmax;
-
-
-% Min-Max scale
-%minTrj = min(trainTrj);
-%maxTrj = max(trainTrj);
-%minAcc = min(min(trainAcc));
-%maxAcc = max(max(trainAcc));
-%minPot = min(trainPot);
-%maxPot = max(trainPot);
-
-%trainTrj = rescale(trainTrj, "InputMax", maxTrj, "InputMin", minTrj);
-%validationTrj = rescale(validationTrj,"InputMax",maxTrj,"InputMin",minTrj);
-%testTrj = rescale(testTrj,"InputMax",maxTrj,"InputMin",minTrj);
-%trainAcc = rescale(trainAcc,"InputMax",maxAcc,"InputMin",minAcc);
-%validationAcc = rescale(validationAcc,"InputMax",maxAcc,"InputMin",minAcc);
-%testAcc = rescale(testAcc,"InputMax",maxAcc,"InputMin",minAcc);
-%trainPot = rescale(trainPot,"InputMax",maxPot,"InputMin",minPot);
-%validationPot = rescale(validationPot,"InputMax",maxPot,"InputMin",minPot);
-%testPot = rescale(testPot,"InputMax",maxPot,"InputMin",minPot);
