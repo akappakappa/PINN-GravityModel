@@ -10,16 +10,16 @@
 %    fullyConnectedLayer(20, "Name", "fc3")
 %    fullyConnectedLayer(1, "Name", "fc4")];
 layers = [
-    featureInputLayer(3,"Name","featureinput")
-    fullyConnectedLayer(20,"Name","fc")
-    geluLayer("Name","tanh")
-    fullyConnectedLayer(20,"Name","fc_1")
-    geluLayer("Name","tanh_1")
-    fullyConnectedLayer(20,"Name","fc_2")
-    geluLayer("Name","tanh_2")
-    fullyConnectedLayer(20,"Name","fc_3")
-    geluLayer("Name","tanh_3")
-    fullyConnectedLayer(1,"Name","fc_4")];
+    featureInputLayer(3, "Name", "featureinput")
+    fullyConnectedLayer(20, "Name", "fc")
+    geluLayer("Name", "tanh")
+    fullyConnectedLayer(20, "Name", "fc_1")
+    geluLayer("Name", "tanh_1")
+    fullyConnectedLayer(20, "Name", "fc_2")
+    geluLayer("Name", "tanh_2")
+    fullyConnectedLayer(20, "Name", "fc_3")
+    geluLayer("Name", "tanh_3")
+    fullyConnectedLayer(1, "Name", "fc_4")];
 
 net = dlnetwork(layers);
 net = initialize(net);
@@ -36,11 +36,11 @@ net = initialize(net);
 %netTrained = trainnet(xTrain, yTrain, net, "mse", options);
 
 % Loss
-function [loss, gradients, state] = modelLoss(net, X, T, U)
+function [loss, gradients, state] = modelLoss(net, X, T)
     % Forward
     [Y, state] = forward(net, X);
     % Loss (TODO: PINN)
-    loss = mse(Y, U);
+    loss = mse(Y);
     % Gradients
     gradients = dlgradient(loss, net.Learnables);
 end
@@ -92,7 +92,7 @@ while epoch < numEpochs && ~monitor.Stop
         % Read mini-batch.
         [X, T, U] = next(mbq);
         % Eval and update state
-        [loss, gradients, state] = dlfeval(@modelLoss, net, X, T, U);
+        [loss, gradients, state] = dlfeval(@modelLoss, net, X, T);
         net.State = state;
         % Update net
         updateFcn = @(parameters, gradients) sgdStep(parameters, gradients, learnRate);

@@ -41,11 +41,11 @@ switch optDataset
 end
 clear optDataset;
 
-%Preprocessing
+% Preprocessing
 run("src/preprocessing/runPreprocessing.m");
 
 % Training
 run("src/training/runTraining.m");
 
-%Test
+% Test
 run("src/test/runTest.m");
