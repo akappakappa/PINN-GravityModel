@@ -26,22 +26,17 @@
 %     Giovanni Brejc 2096046
 
 close all; clear all; clc;
-DEBUG = true;      % Extra debug information
-EZMODE = false;    % Disables custom training loop
-PLOTNET = false;   % Plots the network
+DEBUG = true;         % Extra debug information
+NEWDATASET = false;   % Generates new dataset
+EZMODE = false;       % Disables custom training loop
+PLOTNET = false;      % Plots the network
 
 % Dataset
-optDataset = input("Generate new dataset? (y/N)", "s");
-switch optDataset
-    case {"y", "Y"}
-        disp("Generating new dataset...");
-        run("src/data/runData.m");
-    case {"n", "N", []}
-        dataset = load("src/data/dataset.mat");
-    otherwise
-        error("Invalid option");
+if true == NEWDATASET
+    run("src/data/runData.m")
+else
+    dataset = load("src/data/dataset.mat");
 end
-clear optDataset;
 
 % Preprocessing
 run("src/preprocessing/runPreprocessing.m");
