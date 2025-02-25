@@ -116,3 +116,6 @@ while epoch < numEpochs && ~monitor.Stop
         monitor.Progress = 100 * iteration / numIterations;
     end
 end
+
+% Save
+save("src/training/net.mat", "net");
