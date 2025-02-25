@@ -30,6 +30,7 @@ DEBUG = true;         % Extra debug information
 NEWDATASET = false;   % Generates new dataset
 EZMODE = false;       % Disables custom training loop
 PLOTNET = false;      % Plots the network
+GPU = "auto";         % GPU acceleration
 
 % Dataset
 if true == NEWDATASET

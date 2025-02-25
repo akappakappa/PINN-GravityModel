@@ -54,14 +54,10 @@ end
 % Options
 numEpochs     = 2^13;
 miniBatchSize = 2^11;
-%schedule = piecewiseLearnRate( ...
-%    "DropFactor", 0.5, ...
-%    "Period", 2^13, ...
-%    "FrequencyUnit", "epoch", ...
-%    "NumSteps", numEpochs ...
-%);
-%learnRate     = 2^-8;
-learnRate     = 0.0001;
+learnRate     = 2^-8;
+learnRateSchedule = "piecewise";
+learnRateDropPeriod = 2^13;
+learnRateDropFactor = 0.5;
 
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
     Trj = cat(1, dataTrj{:});
@@ -101,6 +97,7 @@ while epoch < numEpochs && ~monitor.Stop
         iteration = iteration + 1;
         % Read mini-batch.
         [Trj, Acc, Pot] = next(mbq);
+        if ("auto" == GPU && canUseGPU), [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot)); end
 
         % Eval and update state
         [loss, gradients, state] = dlfeval(@modelLoss, net, Trj, Acc, Pot);
@@ -114,6 +111,11 @@ while epoch < numEpochs && ~monitor.Stop
         recordMetrics(monitor, iteration, Loss = loss);
         updateInfo(monitor, Epoch = epoch);
         monitor.Progress = 100 * iteration / numIterations;
+    end
+
+    % Update learning rate
+    if "piecewise" == learnRateSchedule && 0 == mod(epoch, learnRateDropPeriod)
+        learnRate = learnRate * learnRateDropFactor;
     end
 end
 
