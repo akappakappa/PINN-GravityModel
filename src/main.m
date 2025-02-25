@@ -26,8 +26,9 @@
 %     Giovanni Brejc 2096046
 
 close all; clear all; clc;
-DEBUG = true;     % Extra debug information
-EZMODE = false;   % Disables custom training loop
+DEBUG = true;      % Extra debug information
+EZMODE = false;    % Disables custom training loop
+PLOTNET = false;   % Plots the network
 
 % Dataset
 optDataset = input("Generate new dataset? (y/N)", "s");

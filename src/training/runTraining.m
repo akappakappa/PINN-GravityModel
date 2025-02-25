@@ -1,23 +1,28 @@
 assert(1 == exist('DEBUG', 'var'), 'you must run this script from src/main.m');
 assert(1 == exist('dataset', 'var'), 'dataset variable not found');
 
-% NETWORK
+% Network
 layers = [
     featureInputLayer(3, "Name", "featureinput")
-    fullyConnectedLayer(20, "Name", "fc1")
+    fullyConnectedLayer(32, "Name", "fc1")
     geluLayer("Name", "act1")
-    fullyConnectedLayer(20, "Name", "fc2")
+    fullyConnectedLayer(32, "Name", "fc2")
     geluLayer("Name", "act2")
-    fullyConnectedLayer(20, "Name", "fc3")
+    fullyConnectedLayer(32, "Name", "fc3")
     geluLayer("Name", "act3")
-    fullyConnectedLayer(20, "Name", "fc4")
+    fullyConnectedLayer(32, "Name", "fc4")
     geluLayer("Name", "act4")
+    fullyConnectedLayer(32, "Name", "fc5")
+    geluLayer("Name", "act5")
+    fullyConnectedLayer(32, "Name", "fc6")
+    geluLayer("Name", "act6")
     fullyConnectedLayer(1)
 ];
-
 net = dlnetwork(layers);
 net = initialize(net);
-%if true == DEBUG, plot(net), end
+
+% Conditions
+if true == PLOTNET, plot(net), end
 if true == EZMODE
     options = trainingOptions( ...
         "adam", ...
@@ -31,11 +36,12 @@ if true == EZMODE
 end
 
 % Loss
-function [loss, gradients, state] = modelLoss(net, X, T, U)
+function [loss, gradients, state] = modelLoss(net, Trj, Acc, Pot)
     % Forward
-    [Y, state] = forward(net, X);
-    % Loss (TODO: PINN)
-    loss = mse(Y, U);
+    [PotPred, state] = forward(net, Trj);
+    % Loss, TODO: more big chonky loss
+    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    loss = mse(AccPred, Acc);
     % Gradients
     gradients = dlgradient(loss, net.Learnables);
 end
@@ -46,54 +52,64 @@ function parameters = sgdStep(parameters, gradients, learnRate)
 end
 
 % Options
-numEpochs = 400;
-miniBatchSize = 50;
-learnRate = 0.0001;
+numEpochs     = 2^13;
+miniBatchSize = 2^11;
+%schedule = piecewiseLearnRate( ...
+%    "DropFactor", 0.5, ...
+%    "Period", 2^13, ...
+%    "FrequencyUnit", "epoch", ...
+%    "NumSteps", numEpochs ...
+%);
+%learnRate     = 2^-8;
+learnRate     = 0.0001;
 
-function [X, T, U] = preprocessMiniBatch(dataX, dataT, dataU)
-    X = cat(1, dataX{:});
-    X = dlarray(X, 'BC');
-    T = cat(1, dataT{:});
-    T = dlarray(T, 'BC');
-    U = cat(1, dataU{:});
-    U = dlarray(U, 'BC');
+function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
+    Trj = cat(1, dataTrj{:});
+    Trj = dlarray(Trj, 'BC');
+    Acc = cat(1, dataAcc{:});
+    Acc = dlarray(Acc, 'BC');
+    Pot = cat(1, dataPot{:});
+    Pot = dlarray(Pot, 'BC');
 end
 
 mbq = minibatchqueue(datastore.train, ...
-    MiniBatchFcn = @preprocessMiniBatch, ...
+    MiniBatchFcn  = @preprocessMiniBatch, ...
     MiniBatchSize = miniBatchSize ...
 );
 
 % Iterations
-numObservationsTrain = datastore.split(1);
+numObservationsTrain  = datastore.split(1);
 numIterationsPerEpoch = floor(numObservationsTrain / miniBatchSize);
-numIterations = numEpochs * numIterationsPerEpoch;
+numIterations         = numEpochs * numIterationsPerEpoch;
 
 % Monitor
 monitor = trainingProgressMonitor( ...
     Metrics = "Loss", ...
-    Info = "Epoch", ...
-    XLabel = "Iteration" ...
+    Info    = "Epoch", ...
+    XLabel  = "Iteration" ...
 );
 
-% TRAIN
+% Train
 epoch = 0;
 iteration = 0;
 while epoch < numEpochs && ~monitor.Stop
     epoch = epoch + 1;
-    % Shuffle
     shuffle(mbq);
+
     % Loop over mini-batches
     while hasdata(mbq) && ~monitor.Stop
         iteration = iteration + 1;
         % Read mini-batch.
-        [X, T, U] = next(mbq);
+        [Trj, Acc, Pot] = next(mbq);
+
         % Eval and update state
-        [loss, gradients, state] = dlfeval(@modelLoss, net, X, T, U);
+        [loss, gradients, state] = dlfeval(@modelLoss, net, Trj, Acc, Pot);
         net.State = state;
+
         % Update net
         updateFcn = @(parameters, gradients) sgdStep(parameters, gradients, learnRate);
         net = dlupdate(updateFcn, net, gradients);
+
         % Update monitor
         recordMetrics(monitor, iteration, Loss = loss);
         updateInfo(monitor, Epoch = epoch);
