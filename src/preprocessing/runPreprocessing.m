@@ -87,7 +87,8 @@ if true == DEBUG
 end
 
 % Datastores
-datastore.split = [size(train.Trj, 1), size(validation.Trj, 1), size(test.Trj, 1)];
+datastore.idx        = {tmp.ssIdx, tmp.rrIdx};
+datastore.split      = [size(train.Trj, 1), size(validation.Trj, 1), size(test.Trj, 1)];
 datastore.train      = shuffle(combine(arrayDatastore(train.Trj),      arrayDatastore(train.Acc),      arrayDatastore(train.Pot)));
 datastore.validation = shuffle(combine(arrayDatastore(validation.Trj), arrayDatastore(validation.Acc), arrayDatastore(validation.Pot)));
 datastore.test       = shuffle(combine(arrayDatastore(test.Trj),       arrayDatastore(test.Acc),       arrayDatastore(test.Pot)));
