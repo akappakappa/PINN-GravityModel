@@ -60,7 +60,7 @@ learnRateDropFactor   = 0.5;
 verbose               = true;
 verboseFrequency      = 2^6;
 validationFrequency   = 2^6;
-validationPatience    = 2^4;
+validationPatience    = 5;
 
 % Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
