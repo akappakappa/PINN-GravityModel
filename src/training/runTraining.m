@@ -35,6 +35,15 @@ if true == EZMODE
     return;
 end
 
+function valLoss = valeval(net, Trj, Acc, Pot)
+     % Forward
+    PotPred = forward(net, Trj);
+    % Loss, TODO: more big chonky loss
+    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    valLoss = mse(AccPred, Acc);
+end
+
+
 % Loss
 function [loss, gradients, state] = modelLoss(net, Trj, Acc, Pot)
     % Forward
@@ -58,6 +67,7 @@ learnRate     = 2^-8;
 learnRateSchedule = "piecewise";
 learnRateDropPeriod = 2^13;
 learnRateDropFactor = 0.5;
+validationFrequency = 5;
 
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
     Trj = cat(1, dataTrj{:});
@@ -73,6 +83,11 @@ mbq = minibatchqueue(datastore.train, ...
     MiniBatchSize = miniBatchSize ...
 );
 
+mbqVal = minibatchqueue(datastore.validation, ...
+    MiniBatchFcn  = @preprocessMiniBatch, ...
+    MiniBatchSize = miniBatchSize ...
+);
+
 % Iterations
 numObservationsTrain  = datastore.split(1);
 numIterationsPerEpoch = floor(numObservationsTrain / miniBatchSize);
@@ -80,10 +95,12 @@ numIterations         = numEpochs * numIterationsPerEpoch;
 
 % Monitor
 monitor = trainingProgressMonitor( ...
-    Metrics = "Loss", ...
-    Info    = "Epoch", ...
+    Metrics = ["TrainingLoss", "ValidationLoss"], ...
+    Info    = ["Epoch", "LearningRate", "Iteration"], ...
     XLabel  = "Iteration" ...
 );
+
+groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
 
 % Train
 epoch = 0;
@@ -91,6 +108,7 @@ iteration = 0;
 while epoch < numEpochs && ~monitor.Stop
     epoch = epoch + 1;
     shuffle(mbq);
+    shuffle(mbqVal);
 
     % Loop over mini-batches
     while hasdata(mbq) && ~monitor.Stop
@@ -108,10 +126,23 @@ while epoch < numEpochs && ~monitor.Stop
         net = dlupdate(updateFcn, net, gradients);
 
         % Update monitor
-        recordMetrics(monitor, iteration, Loss = loss);
-        updateInfo(monitor, Epoch = epoch);
+        recordMetrics(monitor, iteration, TrainingLoss = loss);
+        updateInfo(monitor, ...
+            Epoch = epoch, ...
+            Iteration = iteration, ...
+            LearningRate = learnRate);
         monitor.Progress = 100 * iteration / numIterations;
+
+        % Update Validation Loss
+        if iteration == 1 || mod(iteration,validationFrequency) == 0
+            [TrjV, AccV, PotV] = next(mbqVal);
+            validationLoss = dlfeval(@valeval, net, TrjV, AccV, PotV);
+
+            recordMetrics(monitor, iteration, ValidationLoss = validationLoss)
+        end
+
     end
+        
 
     % Update learning rate
     if "piecewise" == learnRateSchedule && 0 == mod(epoch, learnRateDropPeriod)
