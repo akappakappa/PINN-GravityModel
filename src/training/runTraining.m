@@ -35,15 +35,6 @@ if true == EZMODE
     return;
 end
 
-function valLoss = valeval(net, Trj, Acc, Pot)
-     % Forward
-    PotPred = forward(net, Trj);
-    % Loss, TODO: more big chonky loss
-    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    valLoss = mse(AccPred, Acc);
-end
-
-
 % Loss
 function [loss, gradients, state] = modelLoss(net, Trj, Acc, Pot)
     % Forward
@@ -55,20 +46,32 @@ function [loss, gradients, state] = modelLoss(net, Trj, Acc, Pot)
     gradients = dlgradient(loss, net.Learnables);
 end
 
+function LossV = modelLossV(net, Trj, Acc, Pot)
+    % Forward
+    PotPred = forward(net, Trj);
+    % Loss, TODO: more big chonky loss
+    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    LossV = mse(AccPred, Acc);
+end
+
 % Optimizer
 function parameters = sgdStep(parameters, gradients, learnRate)
     parameters = parameters - learnRate .* gradients;
 end
 
 % Options
-numEpochs     = 2^13;
-miniBatchSize = 2^11;
-learnRate     = 2^-8;
-learnRateSchedule = "piecewise";
-learnRateDropPeriod = 2^13;
-learnRateDropFactor = 0.5;
-validationFrequency = 5;
+numEpochs             = 2^13;
+miniBatchSize         = 2^11;
+numObservationsTrain  = datastore.split(1);
+numIterationsPerEpoch = floor(numObservationsTrain / miniBatchSize);
+numIterations         = numEpochs * numIterationsPerEpoch;
+learnRate             = 2^-8;
+learnRateSchedule     = "piecewise";
+learnRateDropPeriod   = 2^13;
+learnRateDropFactor   = 0.5;
+validationFrequency   = 2^8;
 
+% Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
     Trj = cat(1, dataTrj{:});
     Trj = dlarray(Trj, 'BC');
@@ -87,11 +90,6 @@ mbqVal = minibatchqueue(datastore.validation, ...
     MiniBatchFcn  = @preprocessMiniBatch, ...
     MiniBatchSize = miniBatchSize ...
 );
-
-% Iterations
-numObservationsTrain  = datastore.split(1);
-numIterationsPerEpoch = floor(numObservationsTrain / miniBatchSize);
-numIterations         = numEpochs * numIterationsPerEpoch;
 
 % Monitor
 monitor = trainingProgressMonitor( ...
@@ -113,6 +111,7 @@ while epoch < numEpochs && ~monitor.Stop
     % Loop over mini-batches
     while hasdata(mbq) && ~monitor.Stop
         iteration = iteration + 1;
+
         % Read mini-batch.
         [Trj, Acc, Pot] = next(mbq);
         if ("auto" == GPU && canUseGPU), [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot)); end
@@ -130,20 +129,19 @@ while epoch < numEpochs && ~monitor.Stop
         updateInfo(monitor, ...
             Epoch = epoch, ...
             Iteration = iteration, ...
-            LearningRate = learnRate);
+            LearningRate = learnRate ...
+        );
         monitor.Progress = 100 * iteration / numIterations;
 
         % Update Validation Loss
-        if iteration == 1 || mod(iteration,validationFrequency) == 0
+        if iteration == 1 || 0 == mod(iteration, validationFrequency)
             [TrjV, AccV, PotV] = next(mbqVal);
-            validationLoss = dlfeval(@valeval, net, TrjV, AccV, PotV);
-
-            recordMetrics(monitor, iteration, ValidationLoss = validationLoss)
+            if ("auto" == GPU && canUseGPU), [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV)); end
+            LossV = dlfeval(@modelLossV, net, TrjV, AccV, PotV);
+            recordMetrics(monitor, iteration, ValidationLoss = LossV);
         end
-
     end
         
-
     % Update learning rate
     if "piecewise" == learnRateSchedule && 0 == mod(epoch, learnRateDropPeriod)
         learnRate = learnRate * learnRateDropFactor;
