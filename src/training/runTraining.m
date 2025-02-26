@@ -39,19 +39,22 @@ end
 function [loss, gradients, state] = modelLoss(net, Trj, Acc, Pot)
     % Forward
     [PotPred, state] = forward(net, Trj);
+
     % Loss, TODO: more big chonky loss
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
     loss = mse(AccPred, Acc);
+
     % Gradients
     gradients = dlgradient(loss, net.Learnables);
 end
 
-function LossV = modelLossV(net, Trj, Acc, Pot)
+function validationLoss = modelLossNoGrad(net, Trj, Acc, Pot)
     % Forward
     PotPred = forward(net, Trj);
+
     % Loss, TODO: more big chonky loss
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    LossV = mse(AccPred, Acc);
+    validationLoss = mse(AccPred, Acc);
 end
 
 % Optimizer
@@ -69,7 +72,8 @@ learnRate             = 2^-8;
 learnRateSchedule     = "piecewise";
 learnRateDropPeriod   = 2^13;
 learnRateDropFactor   = 0.5;
-validationFrequency   = 2^8;
+validationFrequency   = floor(numIterationsPerEpoch * numEpochs / 2^9);
+validationPatience    = 16;
 
 % Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
@@ -103,18 +107,20 @@ groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
 % Train
 epoch = 0;
 iteration = 0;
+earlyStop = false;
+if isfinite(validationPatience), validationLosses = inf(1, validationPatience); end
 while epoch < numEpochs && ~monitor.Stop
     epoch = epoch + 1;
     shuffle(mbq);
     shuffle(mbqVal);
 
     % Loop over mini-batches
-    while hasdata(mbq) && ~monitor.Stop
+    while hasdata(mbq) && ~monitor.Stop && ~earlyStop
         iteration = iteration + 1;
 
         % Read mini-batch.
         [Trj, Acc, Pot] = next(mbq);
-        if ("auto" == GPU && canUseGPU), [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot)); end
+        if ("auto" == GPU && canUseGPU) || "gpu" == GPU, [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot)); end
 
         % Eval and update state
         [loss, gradients, state] = dlfeval(@modelLoss, net, Trj, Acc, Pot);
@@ -136,9 +142,19 @@ while epoch < numEpochs && ~monitor.Stop
         % Update Validation Loss
         if iteration == 1 || 0 == mod(iteration, validationFrequency)
             [TrjV, AccV, PotV] = next(mbqVal);
-            if ("auto" == GPU && canUseGPU), [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV)); end
-            LossV = dlfeval(@modelLossV, net, TrjV, AccV, PotV);
-            recordMetrics(monitor, iteration, ValidationLoss = LossV);
+            if ("auto" == GPU && canUseGPU) || "gpu" == GPU, [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV)); end
+                validationLoss = dlfeval(@modelLossNoGrad, net, TrjV, AccV, PotV);
+            recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
+
+            % Early stopping
+            if isfinite(validationPatience)
+                validationLosses = [validationLosses validationLoss];
+                if min(validationLosses) == validationLosses(1)
+                    earlyStop = true;
+                else
+                    validationLosses(1) = [];
+                end
+            end
         end
     end
         
