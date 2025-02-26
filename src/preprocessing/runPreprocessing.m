@@ -1,4 +1,3 @@
-assert(1 == exist('DEBUG', 'var'), 'you must run this script from src/main.m');
 assert(1 == exist('dataset', 'var'), 'dataset variable not found');
 
 % Variables
@@ -73,7 +72,7 @@ test.Trj       = rescale(test.Trj, "InputMax", minmax.maxTrj, "InputMin", minmax
 test.Acc       = rescale(test.Acc, "InputMax", minmax.maxAcc, "InputMin", minmax.minAcc);
 test.Pot       = rescale(test.Pot, "InputMax", minmax.maxPot, "InputMin", minmax.minPot);
 
-if true == DEBUG
+if false
     dbg = struct;
     dbg.train.Trj      = train.Trj;
     dbg.train.Acc      = train.Acc;

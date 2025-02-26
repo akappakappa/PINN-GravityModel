@@ -1,4 +1,3 @@
-assert(1 == exist('DEBUG', 'var'), 'you must run this script from src/main.m');
 assert(1 == exist('dataset', 'var'), 'dataset variable not found');
 
 % Network
@@ -20,20 +19,6 @@ layers = [
 ];
 net = dlnetwork(layers);
 net = initialize(net);
-
-% Conditions
-if true == PLOTNET, plot(net), end
-if true == EZMODE
-    options = trainingOptions( ...
-        "adam", ...
-        "MaxEpochs", 400, ...
-        "MiniBatchSize", 4, ...
-        "InitialLearnRate", 0.0001, ...
-        "Plots", "training-progress" ...
-    );
-    netTrained = trainnet(xTrain, yTrain, net, "mse", options);
-    return;
-end
 
 % Loss
 function [loss, gradients, state] = modelLoss(net, Trj, Acc, Pot)
@@ -72,8 +57,10 @@ learnRate             = 2^-8;
 learnRateSchedule     = "piecewise";
 learnRateDropPeriod   = 2^13;
 learnRateDropFactor   = 0.5;
-validationFrequency   = floor(numIterationsPerEpoch * numEpochs / 2^9);
-validationPatience    = 16;
+verbose               = true;
+verboseFrequency      = 2^6;
+validationFrequency   = 2^6;
+validationPatience    = 2^4;
 
 % Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
@@ -108,6 +95,11 @@ groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
 epoch = 0;
 iteration = 0;
 earlyStop = false;
+fprintf("|========================================================================================|\n")
+fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n")
+fprintf("|         |             |   (hh:mm:ss)   |     Loss     |     Loss     |      Rate       |\n")
+fprintf("|========================================================================================|\n")
+start = tic;
 if isfinite(validationPatience), validationLosses = inf(1, validationPatience); end
 while epoch < numEpochs && ~monitor.Stop
     epoch = epoch + 1;
@@ -156,6 +148,14 @@ while epoch < numEpochs && ~monitor.Stop
                 end
             end
         end
+
+        % Verbose
+        if verbose && (1 == iteration || 0 == mod(iteration, verboseFrequency))
+            D = duration(0, 0, toc(start), Format = "hh:mm:ss");
+            fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n", ...
+                epoch, iteration, D, loss, validationLoss, learnRate ...
+            );
+        end
     end
         
     % Update learning rate
@@ -163,6 +163,7 @@ while epoch < numEpochs && ~monitor.Stop
         learnRate = learnRate * learnRateDropFactor;
     end
 end
+fprintf("|======================================================================================================================|\n")
 
 % Save
 save("src/training/net.mat", "net");

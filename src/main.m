@@ -26,10 +26,7 @@
 %     Giovanni Brejc 2096046
 
 close all; clear all; clc;
-DEBUG = true;         % Extra debug information
 NEWDATASET = false;   % Generates new dataset
-EZMODE = false;       % Disables custom training loop
-PLOTNET = false;      % Plots the network
 GPU = "auto";         % GPU acceleration
 
 % Dataset
@@ -40,10 +37,13 @@ else
 end
 
 % Preprocessing
+disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting preprocessing']);
 run("src/preprocessing/runPreprocessing.m");
 
 % Training
+disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting training']);
 run("src/training/runTraining.m");
 
 % Test
+disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting test']);
 run("src/test/runTest.m");
