@@ -1,7 +1,7 @@
 assert(1 == exist('dataset', 'var'), 'dataset variable not found');
 
 % Variables
-[tmp, train, test, validation, minmax, datastore] = deal(struct);
+[tmp, train, test, validation, minmax] = deal(struct);
 
 % Random indices
 tmp.ssNum = size(dataset.surfaceTRJ, 1);
@@ -72,24 +72,20 @@ test.Trj       = rescale(test.Trj, "InputMax", minmax.maxTrj, "InputMin", minmax
 test.Acc       = rescale(test.Acc, "InputMax", minmax.maxAcc, "InputMin", minmax.minAcc);
 test.Pot       = rescale(test.Pot, "InputMax", minmax.maxPot, "InputMin", minmax.minPot);
 
-if false
-    dbg = struct;
-    dbg.train.Trj      = train.Trj;
-    dbg.train.Acc      = train.Acc;
-    dbg.train.Pot      = train.Pot;
-    dbg.validation.Trj = validation.Trj;
-    dbg.validation.Acc = validation.Acc;
-    dbg.validation.Pot = validation.Pot;
-    dbg.test.Trj       = test.Trj;
-    dbg.test.Acc       = test.Acc;
-    dbg.test.Pot       = test.Pot;
-end
+% Save to file
+writematrix(train.Trj, "datastore/train/Trj.csv");
+writematrix(train.Acc, "datastore/train/Acc.csv");
+writematrix(train.Pot, "datastore/train/Pot.csv");
+writematrix(validation.Trj, "datastore/validation/Trj.csv");
+writematrix(validation.Acc, "datastore/validation/Acc.csv");
+writematrix(validation.Pot, "datastore/validation/Pot.csv");
+writematrix(test.Trj, "datastore/test/Trj.csv");
+writematrix(test.Acc, "datastore/test/Acc.csv");
+writematrix(test.Pot, "datastore/test/Pot.csv");
 
 % Datastores
-datastore.idx        = {tmp.ssIdx, tmp.rrIdx};
-datastore.split      = [size(train.Trj, 1), size(validation.Trj, 1), size(test.Trj, 1)];
-datastore.train      = shuffle(combine(arrayDatastore(train.Trj),      arrayDatastore(train.Acc),      arrayDatastore(train.Pot)));
-datastore.validation = shuffle(combine(arrayDatastore(validation.Trj), arrayDatastore(validation.Acc), arrayDatastore(validation.Pot)));
-datastore.test       = shuffle(combine(arrayDatastore(test.Trj),       arrayDatastore(test.Acc),       arrayDatastore(test.Pot)));
+perm       = {tmp.ssIdx, tmp.rrIdx};
+split      = [size(train.Trj, 1), size(validation.Trj, 1), size(test.Trj, 1)];
+save("datastore/ds.mat", "perm", "split");
 
-clear tmp train test validation minmax;
+clear tmp train test validation minmax perm split;

@@ -8,17 +8,22 @@
 close all; clear all; clc;
 addpath(genpath("src"));
 SKIP_DATASET_GENERATION = true;
+SKIP_PREPROCESSING = true;
 
 % Dataset
-if false == SKIP_DATASET_GENERATION
-    run("src/data/runData.m")
-else
+if true == SKIP_DATASET_GENERATION
     dataset = load("src/data/dataset.mat");
+else
+    run("src/data/runData.m");
 end
 
 % Preprocessing
-disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting preprocessing']);
-run("src/preprocessing/runPreprocessing.m");
+if true == SKIP_PREPROCESSING
+else
+    disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting preprocessing']);
+    run("src/preprocessing/runPreprocessing.m");
+end
+
 
 % Training
 disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting training']);
