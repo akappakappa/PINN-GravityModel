@@ -3,7 +3,7 @@ assert(1 == exist('datastore', 'var'), 'datastore variable not found');
 executionEnvironment = "auto";
 
 % Presets
-net             = initialize(dlnetwork(presets.network.PINN_GM_III));
+net             = initialize(dlnetwork(presets.network.PINN_GM_III()));
 modelLoss       = @presets.loss.t.PINN_GM_III;
 modelLossNoGrad = @presets.loss.v.PINN_GM_III;
 opt             = presets.options.PINN_GM_III(datastore.split(1));
