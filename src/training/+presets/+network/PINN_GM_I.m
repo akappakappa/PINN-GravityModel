@@ -1,0 +1,22 @@
+function layers = PINN_GM_I()
+    layers = [ ...
+        featureInputLayer(3, "Name", "featureinput")
+        fullyConnectedLayer(20, "Name", "fc1")
+        geluLayer("Name", "act1")
+        fullyConnectedLayer(20, "Name", "fc2")
+        geluLayer("Name", "act2")
+        fullyConnectedLayer(20, "Name", "fc3")
+        geluLayer("Name", "act3")
+        fullyConnectedLayer(20, "Name", "fc4")
+        geluLayer("Name", "act4")
+        fullyConnectedLayer(20, "Name", "fc5")
+        geluLayer("Name", "act5")
+        fullyConnectedLayer(20, "Name", "fc6")
+        geluLayer("Name", "act6")
+        fullyConnectedLayer(20, "Name", "fc7")
+        geluLayer("Name", "act7")
+        fullyConnectedLayer(20, "Name", "fc8")
+        geluLayer("Name", "act8")
+        fullyConnectedLayer(1)
+    ];
+end
