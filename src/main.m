@@ -5,10 +5,10 @@
 %     Andrea Valentinuzzi 2090451
 %     Giovanni Brejc 2096046
 
-close all; clear all; clc;
+close all; clear; clc;
 addpath(genpath("src"));
 SKIP_DATASET_GENERATION = true;
-SKIP_PREPROCESSING = true;
+SKIP_PREPROCESSING = false;
 
 % Dataset
 if true == SKIP_DATASET_GENERATION
@@ -23,7 +23,6 @@ else
     disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting preprocessing']);
     run("src/preprocessing/runPreprocessing.m");
 end
-
 
 % Training
 disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting training']);
