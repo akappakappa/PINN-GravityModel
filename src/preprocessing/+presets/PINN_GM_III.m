@@ -1,5 +1,5 @@
 function [dataOut, split] = PINN_GM_III(dataIn, splitPercentages)
-    [shuffle, divide, minmax] = deal(struct);
+    [shuffle, divide, const, spherical] = deal(struct);
 
     % Shuffle dataset
     surfaceNum = size(dataIn.surfaceTRJ, 1);
@@ -32,24 +32,48 @@ function [dataOut, split] = PINN_GM_III(dataIn, splitPercentages)
     divide.testPOT       = cat(1, shuffle.surfacePOT(vSurfaceDiv + 1:end        , :), shuffle.randomdPOT(vRandomdDiv + 1:end        , :));
 
     clear shuffle;
-
-    % Min-Max scaling
-    mmMinT = min(divide.trainTRJ);
-    mmMaxT = max(divide.trainTRJ);
-    mmMinA = min(min(divide.trainACC));
-    mmMaxA = max(max(divide.trainACC));
-    mmMinP = min(divide.trainPOT);
-    mmMaxP = max(divide.trainPOT);
     
-    minmax.trainTRJ      = rescale(divide.trainTRJ     , "InputMax", mmMaxT, "InputMin", mmMinT);
-    minmax.trainACC      = rescale(divide.trainACC     , "InputMax", mmMaxA, "InputMin", mmMinA);
-    minmax.trainPOT      = rescale(divide.trainPOT     , "InputMax", mmMaxP, "InputMin", mmMinP);
-    minmax.validationTRJ = rescale(divide.validationTRJ, "InputMax", mmMaxT, "InputMin", mmMinT);
-    minmax.validationACC = rescale(divide.validationACC, "InputMax", mmMaxA, "InputMin", mmMinA);
-    minmax.validationPOT = rescale(divide.validationPOT, "InputMax", mmMaxP, "InputMin", mmMinP);
-    minmax.testTRJ       = rescale(divide.testTRJ      , "InputMax", mmMaxT, "InputMin", mmMinT);
-    minmax.testACC       = rescale(divide.testACC      , "InputMax", mmMaxA, "InputMin", mmMinA);
-    minmax.testPOT       = rescale(divide.testPOT      , "InputMax", mmMaxP, "InputMin", mmMinP);
+    % Non-dimensionalize data
+    const.starTRJ = 16000 * 3;
+    const.starPOT = max(divide.trainPOT);
+    const.starTIME = sqrt((const.starTRJ ^ 2) / const.starPOT);
+    const.starACC = const.starTRJ / (const.starTIME ^ 2);
+    divide.trainTRJ = divide.trainTRJ / const.starTRJ;
+    divide.trainACC = divide.trainACC / const.starACC;
+    divide.trainPOT = divide.trainPOT / const.starPOT;
+
+    % Change to spherical coordinates
+    r = vecnorm(divide.trainTRJ, 2, 2);
+    x = divide.trainTRJ(:, 1);
+    y = divide.trainTRJ(:, 2);
+    z = divide.trainTRJ(:, 3);
+    s = sin(x ./ r);
+    t = sin(y ./ r);
+    u = sin(z ./ r);
+    ri = r;
+    ri(ri >= 1) = 1;
+    re = r;
+    re(re <= 1) = 1;
+    re(re > 1) = 1 ./ re(re > 1);
+    spherical.trainTRJ = [ri, re, s, t, u];
+    
+    % Rotate Accelerations
+    %[azimuth,elevation,r] = cart2sph(x,y,z)
+    theta = atan2(y, x);
+    phi = atan2(sqrt((x .^ 2) + (y .^ 2)), z);
+    s_theta = sin(theta);
+    c_theta = cos(theta);
+    s_phi = sin(phi);
+    c_phi = cos(phi);
+    r_hat = [s_phi .* c_theta, s_phi .* s_theta, c_phi];
+    theta_hat = [c_phi .* c_theta, c_phi .* s_theta, -s_phi];
+    phi_hat = [-s_theta, c_theta, zeros(size(s_theta))];
+    spherical.rotation = cat(3, r_hat, theta_hat, phi_hat);
+    spherical.trainACC = divide.trainACC;
+
+
+    spherical.trainACC = reshape(divide.trainACC, [174420, 3, 1]);
+    spherical.trainACC = pagemtimes(spherical.rotation, spherical.trainACC);
 
     clear divide;
 
