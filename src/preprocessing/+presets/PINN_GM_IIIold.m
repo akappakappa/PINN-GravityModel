@@ -86,7 +86,7 @@ function [dataOut, split] = PINN_GM_III(dataIn, splitPercentages)
         
         % Calculate proxy to the potential
         scalingVAL = r;
-        scalingVAL(scalingVAL <= const.starTRJ) = 1;
+        scalingVAL(scalingVAL <= 1) = 1;
         sphPOT = cartPOT .* scalingVAL;
 
     end
