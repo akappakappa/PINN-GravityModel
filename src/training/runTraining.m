@@ -1,4 +1,3 @@
-assert(1 == exist('dataset', 'var'), 'dataset variable not found');
 executionEnvironment = "auto";
 
 % Load datastore
@@ -20,7 +19,7 @@ ds.test = shuffle(combine( ...
 ));
 
 % Presets
-net             = initialize(dlnetwork(presets.network.PINN_GM_III()));
+net             = initialize(dlnetwork(presets.network.PINN_GM_III(@presets.network.customLayer.cart2sphLayer)));
 modelLoss       = @presets.loss.t.PINN_GM_III;
 modelLossNoGrad = @presets.loss.v.PINN_GM_III;
 opt             = presets.options.PINN_GM_III(ds.split(1));
