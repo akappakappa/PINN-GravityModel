@@ -83,8 +83,11 @@ function [dataOut, split] = PINN_GM_III(dataIn, splitPercentages)
         sphACC = permute(cartACC, [2, 3, 1]);
         sphACC = pagemtimes(rotation, sphACC);
         sphACC = permute(sphACC, [3, 1, 2]);
-
-        sphPOT = cartPOT;
+        
+        % Calculate proxy to the potential
+        scalingVAL = r;
+        scalingVAL(scalingVAL <= const.starTRJ) = 1;
+        sphPOT = cartPOT .* scalingVAL;
 
     end
     
