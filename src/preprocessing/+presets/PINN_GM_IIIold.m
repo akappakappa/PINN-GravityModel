@@ -1,4 +1,4 @@
-function [dataOut, split] = PINN_GM_III(dataIn, splitPercentages)
+function [dataOut, split] = PINN_GM_IIIold(dataIn, splitPercentages)
     [shuffle, divide, const, spherical] = deal(struct);
 
     % Shuffle dataset
