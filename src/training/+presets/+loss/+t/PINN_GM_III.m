@@ -9,7 +9,7 @@ function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, Pot)
     re(re = 1) = 0;
     re(re ~= 0) = 1 / re;
     scalingVAL = ri + re;
-    scalingVAL(scalingVAL <= const.starTRJ) = 1;
+    scalingVAL(scalingVAL <= 1) = 1;
     PotPred = PotPred / scalingVAL;
 
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
