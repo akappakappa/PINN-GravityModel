@@ -19,7 +19,7 @@ ds.test = shuffle(combine( ...
 ));
 
 % Presets
-net             = initialize(dlnetwork(presets.network.PINN_GM_III(@presets.network.customLayer.cart2sphLayer)));
+net             = initialize(dlnetwork(presets.network.PINN_GM_III(presets.network.customLayer.cart2sphLayer())));
 modelLoss       = @presets.loss.t.PINN_GM_III;
 modelLossNoGrad = @presets.loss.v.PINN_GM_III;
 opt             = presets.options.PINN_GM_III(ds.split(1));
@@ -32,11 +32,11 @@ end
 % Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
     Trj = cat(1, dataTrj{:});
-    Trj = gpuArray(dlarray(Trj, 'BC'));
+    Trj = dlarray(Trj, 'BC');
     Acc = cat(1, dataAcc{:});
-    Acc = gpuArray(dlarray(Acc, 'BC'));
+    Acc = dlarray(Acc, 'BC');
     Pot = cat(1, dataPot{:});
-    Pot = gpuArray(dlarray(Pot, 'BC'));
+    Pot = dlarray(Pot, 'BC');
 end
 
 mbq = minibatchqueue(ds.train, ...

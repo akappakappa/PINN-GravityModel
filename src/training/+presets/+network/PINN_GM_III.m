@@ -1,7 +1,7 @@
-function layers = PINN_GM_III(customLayer)
+function layers = PINN_GM_III(preprocessingLayer)
     layers = [ ...
         featureInputLayer(3, "Name", "featureinput")
-        customLayer()
+        preprocessingLayer
         fullyConnectedLayer(32, "Name", "fc1")
         geluLayer("Name", "act1")
         fullyConnectedLayer(32, "Name", "fc2")

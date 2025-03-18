@@ -1,19 +1,21 @@
 classdef cart2sphLayer < nnet.layer.Layer
-    properties
+    properties (State)
         RotationMatrix
         ScaleFactor
     end
     methods
-        function layer = cart2sphLayer()
-            layer.Name = "cart2sphLayer";
-            layer.RotationMatrix = [];
-            layer.ScaleFactor = 1;
+        function layer = cart2sphLayer(Name)
+            arguments
+                Name {mustBeText} = "cart2sphLayer"
+            end
+            layer.Name = Name;
         end
-        function SPH = predict(layer, TRJ)
-            x = TRJ(1);
-            y = TRJ(2);
-            z = TRJ(3);
+        function [SPH, RotationMatrix, ScaleFactor] = predict(layer, TRJ)
             % Trajectory (cartesian to spherical)
+            TRJ = extractdata(TRJ.');
+            x = TRJ(:, 1);
+            y = TRJ(:, 2);
+            z = TRJ(:, 3);
             [theta, phi, r] = cart2sph(x, y, z);
             s = sin(x ./ r);
             t = sin(y ./ r);
@@ -25,7 +27,7 @@ classdef cart2sphLayer < nnet.layer.Layer
             re(re <= 1) = 1;
             re(re > 1)  = 1 ./ re(re > 1);
 
-            SPH = {ri, re, s, t, u};
+            SPH = dlarray([ri, re, s, t, u]).';
 
             % Acceleration (rotate)
             s_theta = sin(theta);
@@ -37,12 +39,14 @@ classdef cart2sphLayer < nnet.layer.Layer
             theta_hat = [c_phi .* c_theta, c_phi .* s_theta, -s_phi];
             phi_hat   = [-s_theta, c_theta, zeros(size(s_theta))];
 
-            layer.RotationMatrix = cat(3, r_hat, theta_hat, phi_hat);
-            layer.RotationMatrix = permute(layer.RotationMatrix, [2, 3, 1]);
-
+            RotationMatrix = cat(3, r_hat, theta_hat, phi_hat);
+            RotationMatrix = permute(RotationMatrix, [2, 3, 1]);
+            layer.RotationMatrix = RotationMatrix;
+            
             % Potential (proxy)
-            layer.ScaleFactor = r;
-            layer.ScaleFactor(layer.ScaleFactor <= 1) = 1;
+            ScaleFactor = r;
+            ScaleFactor(ScaleFactor <= 1) = 1;
+            layer.ScaleFactor = ScaleFactor;
         end
     end
 end
