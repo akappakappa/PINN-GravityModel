@@ -1,9 +1,10 @@
 function [data, split] = PINN_GM_III(data, splitPercentages)
     data  = ...
         prp_nonDimensionalize( ...
+        prp_fixNegativePotential( ...
         prp_divide( ...
         prp_shuffle(data), splitPercentages ...
-    ));
+    )));
     split = [ ...
         size(data.trainTRJ     , 1), ...
         size(data.validationTRJ, 1), ...
@@ -47,9 +48,15 @@ function [data, split] = PINN_GM_III(data, splitPercentages)
         data = div;
     end
 
+    function data = prp_fixNegativePotential(data)
+        data.trainPOT      = -data.trainPOT;
+        data.validationPOT = -data.validationPOT;
+        data.testPOT       = -data.testPOT;
+    end
+
     function data = prp_nonDimensionalize(data)
         starTRJ  = 16000 * 3;
-        starPOT  = max(max(data.trainPOT), max(data.validationPOT));
+        starPOT  = max(data.trainPOT);
         starTIME = sqrt((starTRJ ^ 2) / starPOT);
         starACC  = starTRJ / (starTIME ^ 2);
 
@@ -62,53 +69,6 @@ function [data, split] = PINN_GM_III(data, splitPercentages)
         data.testTRJ       = data.testTRJ       / starTRJ;
         data.testACC       = data.testACC       / starACC;
         data.testPOT       = data.testPOT       / starPOT;
-    end
-
-    function data = prp_cart2sph(data)
-        [data.trainTRJ, data.trainACC, data.trainPOT]                = prp_cart2sph_single(data.trainTRJ, data.trainACC, data.trainPOT);
-        [data.validationTRJ, data.validationACC, data.validationPOT] = prp_cart2sph_single(data.validationTRJ, data.validationACC, data.validationPOT);
-        [data.testTRJ, data.testACC, data.testPOT]                   = prp_cart2sph_single(data.testTRJ, data.testACC, data.testPOT);
-
-        function [TRJ, ACC, POT] = prp_cart2sph_single(TRJ, ACC, POT)
-            % Trajectory (cartesian to spherical)
-            x = TRJ(:, 1);
-            y = TRJ(:, 2);
-            z = TRJ(:, 3);
-            [theta, phi, r] = cart2sph(x, y, z);
-            s = sin(x ./ r);
-            t = sin(y ./ r);
-            u = sin(z ./ r);
-
-            ri          = r;
-            ri(ri >= 1) = 1;
-            re          = r;
-            re(re <= 1) = 1;
-            re(re > 1)  = 1 ./ re(re > 1);
-
-            TRJ = [ri, re, s, t, u];
-
-            % Acceleration (rotate)
-            s_theta = sin(theta);
-            c_theta = cos(theta);
-            s_phi   = sin(phi);
-            c_phi   = cos(phi);
-
-            r_hat     = [s_phi .* c_theta, s_phi .* s_theta, c_phi];
-            theta_hat = [c_phi .* c_theta, c_phi .* s_theta, -s_phi];
-            phi_hat   = [-s_theta, c_theta, zeros(size(s_theta))];
-
-            rotation = cat(3, r_hat, theta_hat, phi_hat);
-            rotation = permute(rotation, [2, 3, 1]);
-
-            ACC = permute(ACC, [2, 3, 1]);
-            ACC = pagemtimes(rotation, ACC);
-            ACC = permute(ACC, [3, 1, 2]);
-
-            % Potential (proxy)
-            scaleFactor = r;
-            scaleFactor(scaleFactor <= 1) = 1;
-            POT = POT .* scaleFactor;
-        end
     end
 
 end
