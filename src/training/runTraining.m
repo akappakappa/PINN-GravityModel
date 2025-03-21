@@ -24,11 +24,6 @@ modelLoss       = @presets.loss.t.PINN_GM_III;
 modelLossNoGrad = @presets.loss.v.PINN_GM_III;
 opt             = presets.options.PINN_GM_III(ds.split(1));
 
-% Optimizer
-function parameters = sgdStep(parameters, gradients, learnRate)
-    parameters = parameters - learnRate .* gradients;
-end
-
 % Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
     Trj = cat(1, dataTrj{:});
@@ -58,9 +53,11 @@ monitor = trainingProgressMonitor( ...
 groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
 
 % Initialize loop
-epoch = 0;
-iteration = 0;
-earlyStop = false;
+epoch         = 0;
+iteration     = 0;
+averageGrad   = [];
+averageSqGrad = [];
+earlyStop     = false;
 if opt.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
@@ -92,9 +89,8 @@ while epoch < opt.numEpochs && ~monitor.Stop
         [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot);
         net.State = state;
 
-        % Update net
-        updateFcn = @(parameters, gradients) sgdStep(parameters, gradients, opt.learnRate);
-        net = dlupdate(updateFcn, net, gradients);
+        % Update net with Adam optimizer
+        [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, opt.learnRate);
 
         % Training monitor
         recordMetrics(monitor, iteration, TrainingLoss = loss);
