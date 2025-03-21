@@ -1,8 +1,8 @@
 function [data, split] = PINN_GM_III(data, splitPercentages)
-    data = shuffle(data);
-    data = divide(data, splitPercentages);
-    data = fixNegativePotential(data);
-    data = nonDimensionalize(data);
+    data  = prp_shuffle(data);
+    data  = prp_divide(data, splitPercentages);
+    data  = prp_fixNegativePotential(data);
+    data  = prp_nonDimensionalize(data);
     split = [ ...
         size(data.trainTRJ     , 1), ...
         size(data.validationTRJ, 1), ...
