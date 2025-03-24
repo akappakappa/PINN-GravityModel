@@ -19,10 +19,14 @@ function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~)
 
     % Loss
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    loss = mse(AccPred, Acc);
+    %loss = mse(AccPred, Acc);
     %RMS = rmse(AccPred, Acc);
     %MPE = mape(AccPred, Acc) / 100;
     %loss = sum(RMS + MPE) / size(AccPred, 2);
+
+    trms = vecnorm(AccPred - Acc);
+    tmpe = vecnorm(AccPred - Acc) ./ vecnorm(Acc);
+    loss = sum(sum(trms + tmpe, 2) / size(AccPred, 2)) / 3;
 
     % Gradients
     gradients = dlgradient(loss, net.Learnables);
