@@ -8,7 +8,7 @@ assert(1 == sum(splitPercentages), 'split percentages must sum to 1');
 assert(0 == sum(0 == splitPercentages), 'split percentages must be greater than 0');
 
 % Call preprocessing function preset
-[preprocessed, split] = presets.PINN_GM_I(dataset, splitPercentages);
+[preprocessed, split] = presets.PINN_GM_III(dataset, splitPercentages);
 
 % Save preprocessed dataset
 writematrix(preprocessed.trainTRJ     , "datastore/train/Trj.csv"     );
