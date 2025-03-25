@@ -1,7 +1,7 @@
 classdef cart2sphLayer < nnet.layer.Layer
     properties (State)
         RotationMatrix
-        ScaleFactor
+        Radius
     end
     methods
         function layer = cart2sphLayer(Name)
@@ -10,7 +10,7 @@ classdef cart2sphLayer < nnet.layer.Layer
             end
             layer.Name = Name;
         end
-        function [SPH, RotationMatrix, ScaleFactor] = predict(layer, TRJ)
+        function [SPH, RotationMatrix, Radius] = predict(layer, TRJ)
             % Trajectory (cartesian to spherical)
             x = TRJ(1, :);
             y = TRJ(2, :);
@@ -48,9 +48,8 @@ classdef cart2sphLayer < nnet.layer.Layer
             layer.RotationMatrix = RotationMatrix;
             
             % Potential (proxy)
-            ScaleFactor = r;
-            ScaleFactor(ScaleFactor <= 1) = 1;
-            layer.ScaleFactor = ScaleFactor;
+            Radius = r;
+            layer.Radius = r;
         end
     end
 end
