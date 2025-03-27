@@ -76,7 +76,7 @@ while epoch < opt.numEpochs && ~monitor.Stop
     shuffle(mbqVal);
 
     % Loop over mini-batches
-    while hasdata(mbq) && ~monitor.Stop && ~earlyStop
+    while hasdata(mbq) && ~monitor.Stop && ~earlyStop && iteration < opt.numIterations
         iteration = iteration + 1;
 
         % Read mini-batch.
@@ -134,4 +134,4 @@ end
 if opt.verbose, fprintf("|========================================================================================|\n"); end
 
 % Save
-save("src/training/net.mat", "net");
+save("net", "net");
