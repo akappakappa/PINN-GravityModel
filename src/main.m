@@ -7,27 +7,31 @@
 
 close all; clear; clc;
 addpath(genpath("src"));
-SKIP_DATASET_GENERATION = true;
-SKIP_PREPROCESSING = false;
+DO_DATA_EXTRACTION = true;
+DO_PREPROCESSING   = true;
+DO_TRAINING        = true;
+DO_TESTING         = true;
 
 % Dataset
-if true == SKIP_DATASET_GENERATION
-    dataset = load("src/data/dataset.mat");
-else
+if true == DO_DATA_EXTRACTION
+    disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting dataset extraction']);
     run("src/data/runData.m");
 end
 
 % Preprocessing
-if true == SKIP_PREPROCESSING
-else
+if true == DO_PREPROCESSING
     disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting preprocessing']);
     run("src/preprocessing/runPreprocessing.m");
 end
 
 % Training
-disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting training']);
-run("src/training/runTraining.m");
+if true == DO_TRAINING
+    disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting training']);
+    run("src/training/runTraining.m");
+end
 
 % Test
-disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting test']);
-run("src/test/runTest.m");
+if true == DO_TESTING
+    disp(['[', char(datetime, 'dd MMM hh:mm'), '] [LOG] Starting testing']);
+    run("src/test/runTest.m");
+end
