@@ -9,11 +9,11 @@ function val = planes(net, Trj, Acc)
     Radius         = Radius{1};
 
     % Preprocess Acceleration (rotate)
-    Acc = extractdata(Acc);
-    Acc = permute(Acc, [1, 3, 2]);
-    Acc = pagemtimes(RotationMatrix, Acc);
-    Acc = permute(Acc, [1, 3, 2]);
-    Acc = dlarray(Acc, 'CB');
+    %Acc = extractdata(Acc);
+    %Acc = permute(Acc, [1, 3, 2]);
+    %Acc = pagemtimes(RotationMatrix, Acc);
+    %Acc = permute(Acc, [1, 3, 2]);
+    %Acc = dlarray(Acc, 'CB');
 
     % Preprocess Potential (proxy)
     ScaleFactor                   = Radius;
@@ -24,7 +24,7 @@ function val = planes(net, Trj, Acc)
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
     
     diff = Acc - AccPred;
-    p = vecnorm(diff) ./ vecnorm(Acc) * 100;
+    p = vecnorm(diff) ./ vecnorm(Acc);
     val = sum(p) / size(p,2);
 
 end
