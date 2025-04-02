@@ -1,6 +1,5 @@
 function [data, split] = PINN_GM_III(data, splitPercentage)
     data  = pCombineMetricsRandomDist(data);
-    data  = pNegative2PositivePotential(data);
     data  = pNonDimensionalize(data);
     data  = pMakeValidationSet(data, splitPercentage);
     split = [ ...
@@ -19,20 +18,11 @@ function [data, split] = PINN_GM_III(data, splitPercentage)
         clearvars data.mRandomTRJ_0_1 data.mRandomTRJ_1_10 data.mRandomTRJ_10_100;
     end
 
-    function data = pNegative2PositivePotential(data)
-        % Make all potential values positive
-        data.tSurfacePOT = -data.tSurfacePOT;
-        data.tRandomPOT  = -data.tRandomPOT;
-        
-        data.mPlanesPOT  = -data.mPlanesPOT;
-        data.mRandomPOT  = -data.mRandomPOT;
-    end
-
     function data = pNonDimensionalize(data)
         % Non-dimensionalize the data
         % Values for the non-dimensionalization derived from Eros model
         sTRJ  = 16000 * 3;
-        sPOT  = max(data.tSurfacePOT); % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
+        sPOT  = max(abs(data.tSurfacePOT)); % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
         sTIME = sqrt((sTRJ ^ 2) / sPOT);
         sACC  = sTRJ / (sTIME ^ 2);
 
