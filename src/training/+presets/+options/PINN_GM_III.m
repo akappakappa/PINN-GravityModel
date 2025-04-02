@@ -10,7 +10,7 @@ function options = PINN_GM_III(num)
     learnRateDropFactor   = 0.5;
     verbose               = true;
     verboseFrequency      = 2^6;
-    validationFrequency   = 2^6;
+    validationFrequency   = 2;
     validationPatience    = 5;
 
     options = struct( ...

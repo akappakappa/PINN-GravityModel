@@ -36,7 +36,7 @@ mbq = minibatchqueue(ds.train, ...
 
 mbqVal = minibatchqueue(ds.validation, ...
     MiniBatchFcn  = @preprocessMiniBatch, ...
-    MiniBatchSize = floor(ds.split(2) / opt.numIterationsPerEpoch) * opt.validationFrequency ...
+    MiniBatchSize = floor(ds.split(2) / opt.numIterationsPerEpoch) * floor(opt.numIterationsPerEpoch / opt.validationFrequency) ...
 );
 
 % Monitor
@@ -92,7 +92,7 @@ while epoch < opt.numEpochs && ~monitor.Stop
         updateInfo(monitor, Epoch = string(epoch) + " / " + string(opt.numEpochs), Iteration = iteration, LearningRate = opt.learnRate);
 
         % Validation monitor
-        if iteration == 1 || 0 == mod(iteration, opt.validationFrequency)
+        if iteration == 1 || 0 == mod(iteration, floor(opt.numIterationsPerEpoch / opt.validationFrequency))
             [TrjV, AccV, PotV] = next(mbqVal);
             if ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment
                 [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV));
