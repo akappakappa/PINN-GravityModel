@@ -3,17 +3,8 @@ function loss = PINN_GM_III(net, Trj, Acc, ~)
     [PotPred, state] = forward(net, Trj);
 
     % State data generated in the cart2sphLayer
-    RotationMatrix = state.Value(state.Layer == "cart2sphLayer" & state.Parameter == "RotationMatrix");
-    RotationMatrix = RotationMatrix{1};
-    Radius         = state.Value(state.Layer == "cart2sphLayer" & state.Parameter == "Radius");
-    Radius         = Radius{1};
-
-    % Preprocess Acceleration (rotate)
-    %Acc = extractdata(Acc);
-    %Acc = permute(Acc, [1, 3, 2]);
-    %Acc = pagemtimes(RotationMatrix, Acc);
-    %Acc = permute(Acc, [1, 3, 2]);
-    %Acc = dlarray(Acc, 'CB');
+    Radius = state.Value(state.Layer == "cart2sphLayer" & state.Parameter == "Radius");
+    Radius = Radius{1};
 
     % Preprocess Potential (proxy)
     ScaleFactor                   = Radius;
@@ -30,7 +21,7 @@ function loss = PINN_GM_III(net, Trj, Acc, ~)
 
     % Loss
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    RMS  = vecnorm(AccPred - Acc);
-    MPE  = vecnorm(AccPred - Acc) ./ vecnorm(Acc);
-    loss = sum(sum(RMS + MPE, 2) / size(AccPred, 2)) / 3;
+    RMS     = vecnorm(AccPred - Acc);
+    MPE     = vecnorm(AccPred - Acc) ./ vecnorm(Acc);
+    loss    = sum(sum(RMS + MPE, 2) / size(AccPred, 2)) / 3;
 end

@@ -11,7 +11,9 @@ RandomPot = dlarray(table2array(readtable("src/preprocessing/datastore/metrics/R
 net = load("src/training/net.mat");
 
 % Calculate Planes metric
-[PlanesMetric] = dlfeval(@planes, net, PlanesTrj, PlanesAcc);
+PlanesMetric = dlfeval(@planes, net, PlanesTrj, PlanesAcc, PlanesPot);
+fprintf("Planes metric: %f\n", PlanesMetric);
 
 % Calculate Generalized metric
-[GeneralizedMetric] = dlfeval(@generalized, net, RandomTrj, RandomAcc);
+GeneralizedMetric = dlfeval(@generalized, net, RandomTrj, RandomAcc, RandomPot);
+fprintf("Generalized metric: %f\n", GeneralizedMetric);
