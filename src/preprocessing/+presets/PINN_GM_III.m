@@ -21,8 +21,8 @@ function [data, split] = PINN_GM_III(data, splitPercentage)
     function data = pNonDimensionalize(data)
         % Non-dimensionalize the data
         % Values for the non-dimensionalization derived from Eros model
-        sTRJ  = 16000 * 3;
-        sPOT  = max(abs(data.tSurfacePOT)); % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
+        sTRJ  = 16000;                        % ~r_max
+        sPOT  = max(abs(data.tSurfacePOT));   % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
         sTIME = sqrt((sTRJ ^ 2) / sPOT);
         sACC  = sTRJ / (sTIME ^ 2);
 

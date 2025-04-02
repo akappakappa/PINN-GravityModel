@@ -11,19 +11,30 @@ function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~)
     ScaleFactor(ScaleFactor <= 1) = 1;
     PotPred                       = PotPred ./ ScaleFactor;
 
-    % Preprocess Potential (boundary conditions) TODO: PotBC ??
-    [rref, PotBC] = deal(Inf, 0);
-    k             = 2;
-    h             = (1 + tanh(k * (Radius - rref))) / 2;
-    wnn           = 1 - h;
-    wbc           = h;
-    PotPred       = wnn .* PotPred + wbc .* PotBC;
+    % Preprocess Potential (boundary conditions)
+    g       = 6.67430e-11;
+    vol     = 2525994603183.156;   % from 8k file in dataset https://github.com/MartinAstro/GravNN
+    density = 2670;                % https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=eros
+    mu      = g * vol * density;
+    fx      = 0;                   % Extra (optional) terms from Spherical Harmonics model
+    
+    PotBC = mu ./ Radius + fx;
+    rref  = 10;                    % 10R = max altitude of the training dataset
+
+    k   = 2;
+    h   = (1 + tanh(k * (Radius - rref))) / 2;
+    wnn = 1 - h;
+    wbc = h;
+
+    PotPred = wnn .* PotPred + wbc .* PotBC;
 
     % Loss
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    RMS     = vecnorm(AccPred - Acc);
-    MPE     = vecnorm(AccPred - Acc) ./ vecnorm(Acc);
-    loss    = sum(sum(RMS + MPE, 2) / size(AccPred, 2)) / 3;
+    diff    = AccPred - Acc;
+    RMS     = vecnorm(diff);
+    MPE     = vecnorm(diff) ./ vecnorm(Acc);
+    loss    = sum(mean(RMS, 2) + mean(MPE, 2), 2);
+    %loss    = sum(RMS + MPE, 2) / size(AccPred, 2);
 
     % Gradients
     gradients = dlgradient(loss, net.Learnables);
