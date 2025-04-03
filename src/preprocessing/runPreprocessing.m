@@ -1,12 +1,14 @@
 dataset = load("src/data/dataset.mat");
 
-% Options
+% Parameters
+dataset.params = struct();
 splitPercentage = 0.9;
 assert(splitPercentage > 0, 'split percentage must be greater than 0');
 assert(splitPercentage < 1, 'split percentage must be less than 1');
+dataset.params.splitPercentage = splitPercentage;
 
 % Call preprocessing function preset
-[preprocessed, split] = presets.PINN_GM_III(dataset, splitPercentage);
+preprocessed = presets.PINN_GM_III(dataset);
 
 % Save preprocessed training data
 writematrix(preprocessed.trainTRJ     , "datastore/train/Trj.csv"     );
@@ -15,7 +17,8 @@ writematrix(preprocessed.trainPOT     , "datastore/train/Pot.csv"     );
 writematrix(preprocessed.validationTRJ, "datastore/validation/Trj.csv");
 writematrix(preprocessed.validationACC, "datastore/validation/Acc.csv");
 writematrix(preprocessed.validationPOT, "datastore/validation/Pot.csv");
-save("datastore/ds.mat", "split");
+
+writestruct(preprocessed.params, "datastore/params.json");
 
 % Save preprocessed metrics data
 writematrix(preprocessed.mPlanesTRJ, "datastore/metrics/PlanesTrj.csv");

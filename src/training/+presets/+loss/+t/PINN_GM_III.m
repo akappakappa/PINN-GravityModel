@@ -1,4 +1,4 @@
-function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~)
+function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~, mu)
     % Forward
     [PotPred, state] = forward(net, Trj);
 
@@ -12,14 +12,9 @@ function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~)
     PotPred                       = PotPred ./ ScaleFactor;
 
     % Preprocess Potential (boundary conditions)
-    g       = 6.67430e-11;
-    vol     = 2525994603183.156;   % from 8k file in dataset https://github.com/MartinAstro/GravNN
-    density = 2670;                % https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=eros
-    mu      = g * vol * density;
-    fx      = 0;                   % Extra (optional) terms from Spherical Harmonics model
-    
-    PotBC = mu ./ Radius + fx;
-    rref  = 10;                    % 10R = max altitude of the training dataset
+    fx    = 0;                      % Extra (optional) terms from Spherical Harmonics model
+    PotBC = -(mu ./ Radius + fx);
+    rref  = 10;                     % 10R = max altitude of the training dataset
 
     k   = 2;
     h   = (1 + tanh(k * (Radius - rref))) / 2;
