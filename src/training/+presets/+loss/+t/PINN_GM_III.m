@@ -1,4 +1,4 @@
-function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~, mu)
+function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~, mu, e)
     % Forward
     [PotPred, state] = forward(net, Trj);
 
@@ -11,17 +11,26 @@ function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~, mu)
     ScaleFactor(ScaleFactor <= 1) = 1;
     PotPred                       = PotPred ./ ScaleFactor;
 
-    % Preprocess Potential (boundary conditions)
+    % Low-Fidelity Potential
     fx    = 0;                      % Extra (optional) terms from Spherical Harmonics model
-    PotBC = -(mu ./ Radius + fx);
-    rref  = 10;                     % 10R = max altitude of the training dataset
+    PotLF = -(mu ./ Radius + fx);
+    function weight = Transition(radius, reference, smoothing)
+        weight = (1 + tanh(smoothing * (radius - reference))) / 2;
+    end
 
-    k   = 2;
-    h   = (1 + tanh(k * (Radius - rref))) / 2;
-    wnn = 1 - h;
-    wbc = h;
+    % Fusing with Analytical model
+    refFusion         = 1 + e;
+    smoothFusion      = 0.5;                                          % Slower transition
+    weightLowFidelity = Transition(Radius, refFusion, smoothFusion);   % Low-Fidelity model gradually more important around 1+e
+    PotFused          = PotPred + weightLowFidelity .* PotLF;
 
-    PotPred = wnn .* PotPred + wbc .* PotBC;
+    % Boundary Conditions
+    refBounds     = 10;                                           % 10R = max altitude of the training dataset
+    smoothBounds  = 2;                                            % Faster transition
+    weightBounds  = Transition(Radius, refBounds, smoothBounds);   % Smooth transition from Network to Boundary Conditions around 10R
+    weightNetwork = 1 - weightBounds;
+    
+    PotPred = weightNetwork .* PotFused + weightBounds .* PotLF;
 
     % Loss
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);

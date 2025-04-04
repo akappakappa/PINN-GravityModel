@@ -14,17 +14,25 @@ function data = PINN_GM_III(data)
     end
 
     function data = pAddExtraParameters(data)
+        % Radius Max
+        data.params.rMax = 16000;   % Eros radius
+
         % Mu
         g              = 6.67430e-11;
         vol            = 2525994603183.156;   % from 8k file in dataset https://github.com/MartinAstro/GravNN
         density        = 2670;                % https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=eros
         data.params.mu = g * vol * density;
+
+        % Eccentricity
+        a             = data.params.rMax;
+        b             = 3120;                      % Min Eros radius
+        data.params.e = sqrt(1 - b ^ 2 / a ^ 2);
     end
 
     function data = pNonDimensionalize(data)
         % Non-dimensionalize the data
         % Values for the non-dimensionalization derived from Eros model
-        sTRJ  = 16000;                        % ~r_max
+        sTRJ  = data.params.rMax;
         sPOT  = max(abs(data.tSurfacePOT));   % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
         sTIME = sqrt((sTRJ ^ 2) / sPOT);
         sACC  = sTRJ / (sTIME ^ 2);

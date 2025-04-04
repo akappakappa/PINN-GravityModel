@@ -81,7 +81,7 @@ while epoch < opt.numEpochs && ~monitor.Stop
         end
 
         % Eval and update state
-        [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot, ds.params.mu);
+        [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot, ds.params.mu, ds.params.e);
         net.State = state;
 
         % Update net with Adam optimizer
@@ -97,7 +97,7 @@ while epoch < opt.numEpochs && ~monitor.Stop
             if ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment
                 [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV));
             end
-                validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV, ds.params.mu);
+                validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV, ds.params.mu, ds.params.e);
             recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
 
             % Early stopping
