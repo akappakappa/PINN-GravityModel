@@ -1,4 +1,4 @@
-function metric = generalized(net, Trj, Acc, ~)
+function loss = generalized(net, Trj, Acc, ~)
     % Forward
     [PotPred, state] = forward(net, Trj);
 
@@ -13,6 +13,8 @@ function metric = generalized(net, Trj, Acc, ~)
 
     % Metric
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    DIFF    = vecnorm(AccPred - Acc);
-    metric  = sum(DIFF) / size(Acc, 2);
+    diff    = AccPred - Acc;
+    RMS     = vecnorm(diff);
+    MPE     = vecnorm(diff) ./ vecnorm(Acc);
+    loss    = mean(RMS + MPE, 2);
 end

@@ -1,4 +1,4 @@
-function metric = planes(net, Trj, Acc, ~)
+function loss = planes(net, Trj, Acc, ~)
     % Forward
     [PotPred, state] = forward(net, Trj);
 
@@ -14,5 +14,5 @@ function metric = planes(net, Trj, Acc, ~)
     % Metric
     AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
     PRC     = vecnorm(Acc - AccPred) ./ vecnorm(Acc);
-    metric  = sum(PRC) / size(PRC, 2);
+    loss    = mean(PRC, 2) * 100;
 end

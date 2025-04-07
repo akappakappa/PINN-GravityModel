@@ -8,7 +8,7 @@ RandomAcc = dlarray(table2array(readtable("src/preprocessing/datastore/metrics/R
 RandomPot = dlarray(table2array(readtable("src/preprocessing/datastore/metrics/RandomPot.csv")), 'BC');
 
 % Load Network
-net = load("src/training/net.mat");
+net = load("src/training/net.mat").net;
 
 % Calculate Planes metric
 PlanesMetric = dlfeval(@planes, net, PlanesTrj, PlanesAcc, PlanesPot);

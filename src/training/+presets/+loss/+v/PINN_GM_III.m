@@ -37,6 +37,5 @@ function loss = PINN_GM_III(net, Trj, Acc, ~, mu, e)
     diff    = AccPred - Acc;
     RMS     = vecnorm(diff);
     MPE     = vecnorm(diff) ./ vecnorm(Acc);
-    loss    = sum(mean(RMS, 2) + mean(MPE, 2), 2);
-    %loss    = sum(RMS + MPE, 2) / size(AccPred, 2);
+    loss    = mean(RMS + MPE, 2);
 end
