@@ -65,7 +65,7 @@ if isfinite(opt.validationPatience)
 end
 
 % Loop
-while epoch < opt.numEpochs && ~monitor.Stop
+while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
     epoch = epoch + 1;
     shuffle(mbq);
     shuffle(mbqVal);
