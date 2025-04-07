@@ -1,4 +1,4 @@
-function metric = generalized(net, Trj, Acc)
+function metric = generalized(net, Trj, Acc, ~)
     % Forward
     [PotPred, state] = forward(net, Trj);
 

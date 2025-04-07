@@ -1,4 +1,4 @@
-function metric = planes(net, Trj, Acc)
+function metric = planes(net, Trj, Acc, ~)
     % Forward
     [PotPred, state] = forward(net, Trj);
 
