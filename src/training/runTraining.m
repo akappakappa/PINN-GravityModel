@@ -14,7 +14,7 @@ ds.validation = shuffle(combine( ...
 ));
 
 % Presets
-net             = initialize(dlnetwork(presets.network.PINN_GM_III(presets.network.customLayer.cart2sphLayer())));
+net             = initialize(presets.network.PINN_GM_III(ds.params.mu, ds.params.e));
 modelLoss       = @presets.loss.t.PINN_GM_III;
 modelLossNoGrad = @presets.loss.v.PINN_GM_III;
 opt             = presets.options.PINN_GM_III(ds.params.split(1));
@@ -81,7 +81,7 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
         end
 
         % Eval and update state
-        [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot, ds.params.mu, ds.params.e);
+        [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot);
         net.State = state;
 
         % Update net with Adam optimizer
@@ -97,7 +97,7 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
             if ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment
                 [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV));
             end
-                validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV, ds.params.mu, ds.params.e);
+                validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV);
             recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
 
             % Early stopping
