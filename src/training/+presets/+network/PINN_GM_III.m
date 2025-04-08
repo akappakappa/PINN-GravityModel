@@ -2,7 +2,7 @@ function net = PINN_GM_III(mu, e)
     net = dlnetwork();
     lPreprocessing = [ ...
         featureInputLayer(3, "Name", "featureinput")
-        functionLayer(@presets.network.customLayer.cart2sphLayer, "Name", "cart2sphLayer", "InputName", "TRJ", "OutputNames", ["SPH", "Radius"])
+        functionLayer(@presets.network.customLayer.cart2sphLayer, "Name", "cart2sphLayer", "InputName", "TRJ", "OutputNames", ["SPH", "Radius"], "Acceleratable", true)
     ];
     lNN = [ ...
         fullyConnectedLayer(32, "Name", "fc1")
@@ -23,10 +23,10 @@ function net = PINN_GM_III(mu, e)
     % Add layers
     net = addLayers(net, lPreprocessing);
     net = addLayers(net, lNN);
-    net = addLayers(net, functionLayer(@presets.network.customLayer.scaleNNPotentialLayer, "Name", "scaleNNPotentialLayer", "InputNames", ["Potential", "Radius"], "OutputName", "Potential"));
-    net = addLayers(net, functionLayer(@(Radius) presets.network.customLayer.analyticModelLayer(Radius, mu), "Name", "analyticModelLayer", "InputName", "Radius", "OutputName", "Potential"));
-    net = addLayers(net, functionLayer(@(PotNN, PotLF, Radius) presets.network.customLayer.fuseModelsLayer(PotNN, PotLF, Radius, e), "Name", "fuseModelsLayer", "InputNames", ["PotNN", "PotLF", "Radius"], "OutputName", "Potential"));
-    net = addLayers(net, functionLayer(@presets.network.customLayer.applyBoundaryConditionsLayer, "Name", "applyBoundaryConditionsLayer", "InputNames", ["PotFused", "PotLF", "Radius"], "OutputName", "Potential"));
+    net = addLayers(net, functionLayer(@presets.network.customLayer.scaleNNPotentialLayer, "Name", "scaleNNPotentialLayer", "InputNames", ["Potential", "Radius"], "OutputName", "Potential", "Acceleratable", true));
+    net = addLayers(net, functionLayer(@(Radius) presets.network.customLayer.analyticModelLayer(Radius, mu), "Name", "analyticModelLayer", "InputName", "Radius", "OutputName", "Potential", "Acceleratable", true));
+    net = addLayers(net, functionLayer(@(PotNN, PotLF, Radius) presets.network.customLayer.fuseModelsLayer(PotNN, PotLF, Radius, e), "Name", "fuseModelsLayer", "InputNames", ["PotNN", "PotLF", "Radius"], "OutputName", "Potential", "Acceleratable", true));
+    net = addLayers(net, functionLayer(@presets.network.customLayer.applyBoundaryConditionsLayer, "Name", "applyBoundaryConditionsLayer", "InputNames", ["PotFused", "PotLF", "Radius"], "OutputName", "Potential", "Acceleratable", true));
 
     % Connect NN layers
     net = connectLayers(net, "cart2sphLayer/SPH", "fc1/in");

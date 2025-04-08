@@ -1,41 +1,44 @@
 executionEnvironment = "auto";
+useGPU               = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
 
 % Load datastore
 ds.params     = readstruct("src/preprocessing/datastore/params.json");
 ds.train      = shuffle(combine( ...
-    arrayDatastore(table2array(readtable("src/preprocessing/datastore/train/Trj.csv"))), ...
-    arrayDatastore(table2array(readtable("src/preprocessing/datastore/train/Acc.csv"))), ...
-    arrayDatastore(table2array(readtable("src/preprocessing/datastore/train/Pot.csv"))) ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Trj.csv")), ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Acc.csv")), ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Pot.csv")) ...
 ));
 ds.validation = shuffle(combine( ...
-    arrayDatastore(table2array(readtable("src/preprocessing/datastore/validation/Trj.csv"))), ...
-    arrayDatastore(table2array(readtable("src/preprocessing/datastore/validation/Acc.csv"))), ...
-    arrayDatastore(table2array(readtable("src/preprocessing/datastore/validation/Pot.csv"))) ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Trj.csv")), ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Acc.csv")), ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Pot.csv")) ...
 ));
 
 % Presets
 net             = initialize(presets.network.PINN_GM_III(ds.params.mu, ds.params.e));
-modelLoss       = @presets.loss.t.PINN_GM_III;
-modelLossNoGrad = @presets.loss.v.PINN_GM_III;
+modelLoss       = dlaccelerate(@presets.loss.t.PINN_GM_III);
+modelLossNoGrad = dlaccelerate(@presets.loss.v.PINN_GM_III);
 opt             = presets.options.PINN_GM_III(ds.params.split(1));
+if useGPU
+    net = dlupdate(@gpuArray, net);
+end
 
 % Mini-batch
-function [Trj, Acc, Pot] = preprocessMiniBatch(dataTrj, dataAcc, dataPot)
-    Trj = cat(1, dataTrj{:});
-    Trj = dlarray(Trj, 'BC');
-    Acc = cat(1, dataAcc{:});
-    Acc = dlarray(Acc, 'BC');
-    Pot = cat(1, dataPot{:});
-    Pot = dlarray(Pot, 'BC');
+function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot, useGPU)
+    [Trj, Acc, Pot] = deal(cat(1, Trj{:}), cat(1, Acc{:}), cat(1, Pot{:}));
+    if useGPU
+        [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot));
+    end
+    [Trj, Acc, Pot] = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
 end
 
 mbq = minibatchqueue(ds.train, ...
-    MiniBatchFcn  = @preprocessMiniBatch, ...
+    MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU), ...
     MiniBatchSize = opt.miniBatchSize ...
 );
 
 mbqVal = minibatchqueue(ds.validation, ...
-    MiniBatchFcn  = @preprocessMiniBatch, ...
+    MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU), ...
     MiniBatchSize = floor(ds.params.split(2) / opt.numIterationsPerEpoch) * floor(opt.numIterationsPerEpoch / opt.validationFrequency) ...
 );
 
@@ -76,9 +79,6 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
 
         % Read mini-batch.
         [Trj, Acc, Pot] = next(mbq);
-        if ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment
-            [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot));
-        end
 
         % Eval and update state
         [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot);
@@ -94,10 +94,7 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
         % Validation monitor
         if iteration == 1 || 0 == mod(iteration, floor(opt.numIterationsPerEpoch / opt.validationFrequency))
             [TrjV, AccV, PotV] = next(mbqVal);
-            if ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment
-                [TrjV, AccV, PotV] = deal(gpuArray(TrjV), gpuArray(AccV), gpuArray(PotV));
-            end
-                validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV);
+            validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV);
             recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
 
             % Early stopping

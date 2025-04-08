@@ -11,11 +11,9 @@ function [SPH, Radius] = cart2sphLayer(TRJ)
     t = sin(y ./ r);
     u = sin(z ./ r);
     
-    ri          = r;
-    ri(ri >= 1) = 1;
-    re          = r;
-    re(re <= 1) = 1;
-    re(re > 1)  = 1 ./ re(re > 1);
+    ri = min(r, 1);
+    re = max(r, 1);
+    re = 1 ./ re;
 
     SPH = [ri; re; s; t; u];
 
