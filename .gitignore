@@ -1,6 +1,7 @@
 # Irrelevant or too big files (e.g. data, models, etc.)
 latex/
-#src/data/
+src/preprocessing/datastore/
+src/training/net.mat
 
 # Environment
 .vscode/

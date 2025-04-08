@@ -1,8 +1,8 @@
 function data = PINN_GM_III(data)
-    data  = pCombineMetricsRandomDist(data);
-    data  = pAddExtraParameters(data);
-    data  = pNonDimensionalize(data);
-    data  = pMakeValidationSet(data);
+    data = pCombineMetricsRandomDist(data);
+    data = pAddExtraParameters(data);
+    data = pNonDimensionalize(data);
+    data = pMakeValidationSet(data);
 
     function data = pCombineMetricsRandomDist(data)
         % Handle 0R-1R 1R-10R 10R-100R data together
@@ -39,23 +39,24 @@ function data = PINN_GM_III(data)
         sMU   = sTIME ^ 2 / sTRJ ^ 3;
 
         % Scale training data
-        data.tSurfaceTRJ = data.tSurfaceTRJ / sTRJ;
-        data.tSurfaceACC = data.tSurfaceACC / sACC;
-        data.tSurfacePOT = data.tSurfacePOT / sPOT;
-        data.tRandomTRJ  = data.tRandomTRJ  / sTRJ;
-        data.tRandomACC  = data.tRandomACC  / sACC;
-        data.tRandomPOT  = data.tRandomPOT  / sPOT;
+        data.tSurfaceTRJ = data.tSurfaceTRJ ./ sTRJ;
+        data.tSurfaceACC = data.tSurfaceACC ./ sACC;
+        data.tSurfacePOT = data.tSurfacePOT ./ sPOT;
+
+        data.tRandomTRJ = data.tRandomTRJ ./ sTRJ;
+        data.tRandomACC = data.tRandomACC ./ sACC;
+        data.tRandomPOT = data.tRandomPOT ./ sPOT;
 
         % Scale metrics data
-        data.mPlanesTRJ = data.mPlanesTRJ / sTRJ;
-        data.mPlanesACC = data.mPlanesACC / sACC;
-        data.mPlanesPOT = data.mPlanesPOT / sPOT;
-        data.mRandomTRJ = data.mRandomTRJ / sTRJ;
-        data.mRandomACC = data.mRandomACC / sACC;
-        data.mRandomPOT = data.mRandomPOT / sPOT;
+        data.mPlanesTRJ = data.mPlanesTRJ ./ sTRJ;
+        data.mPlanesACC = data.mPlanesACC ./ sACC;
+        data.mPlanesPOT = data.mPlanesPOT ./ sPOT;
+        data.mRandomTRJ = data.mRandomTRJ ./ sTRJ;
+        data.mRandomACC = data.mRandomACC ./ sACC;
+        data.mRandomPOT = data.mRandomPOT ./ sPOT;
 
         % Scale parameters
-        data.params.mu = data.params.mu * sMU;
+        data.params.mu = data.params.mu .* sMU;
     end
 
     function data = pMakeValidationSet(data)
@@ -64,12 +65,13 @@ function data = PINN_GM_III(data)
         pRandomIdx  = randperm(size(data.tRandomTRJ, 1));
 
         % Shuffle data
-        data.tSurfaceTRJ       = data.tSurfaceTRJ(pSurfaceIdx, :);
-        data.tSurfaceACC       = data.tSurfaceACC(pSurfaceIdx, :);
-        data.tSurfacePOT       = data.tSurfacePOT(pSurfaceIdx, :);
-        data.tRandomTRJ        = data.tRandomTRJ(pRandomIdx, :);
-        data.tRandomACC        = data.tRandomACC(pRandomIdx, :);
-        data.tRandomPOT        = data.tRandomPOT(pRandomIdx, :);
+        data.tSurfaceTRJ = data.tSurfaceTRJ(pSurfaceIdx, :);
+        data.tSurfaceACC = data.tSurfaceACC(pSurfaceIdx, :);
+        data.tSurfacePOT = data.tSurfacePOT(pSurfaceIdx, :);
+        
+        data.tRandomTRJ  = data.tRandomTRJ(pRandomIdx, :);
+        data.tRandomACC  = data.tRandomACC(pRandomIdx, :);
+        data.tRandomPOT  = data.tRandomPOT(pRandomIdx, :);
 
         % Generate split indexes
         pSurfaceDiv = floor(size(data.tSurfaceTRJ, 1) * data.params.splitPercentage);

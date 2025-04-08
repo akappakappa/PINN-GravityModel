@@ -4,32 +4,31 @@ useGPU               = ("auto" == executionEnvironment && canUseGPU) || "gpu" ==
 % Load datastore
 ds.params     = readstruct("src/preprocessing/datastore/params.json");
 ds.train      = shuffle(combine( ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Trj.csv")), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Acc.csv")), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Pot.csv")) ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Trj.csv"     )), ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Acc.csv"     )), ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Pot.csv"     ))  ...
 ));
 ds.validation = shuffle(combine( ...
     arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Trj.csv")), ...
     arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Acc.csv")), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Pot.csv")) ...
+    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Pot.csv"))  ...
 ));
 
 % Presets
-net             = initialize(presets.network.PINN_GM_III(ds.params.mu, ds.params.e));
-modelLoss       = dlaccelerate(@presets.loss.t.PINN_GM_III);
-modelLossNoGrad = dlaccelerate(@presets.loss.v.PINN_GM_III);
-opt             = presets.options.PINN_GM_III(ds.params.split(1));
+net       = initialize(presets.network.PINN_GM_III(ds.params.mu, ds.params.e));
+modelLoss = dlaccelerate(@presets.loss.PINN_GM_III);
+opt       = presets.options.PINN_GM_III(ds.params.split(1));
 if useGPU
-    net = dlupdate(@gpuArray, net);
+    net   = dlupdate(@gpuArray, net);
 end
 
 % Mini-batch
 function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot, useGPU)
-    [Trj, Acc, Pot] = deal(cat(1, Trj{:}), cat(1, Acc{:}), cat(1, Pot{:}));
+    [Trj, Acc, Pot]     = deal(cat(1, Trj{:})    , cat(1, Acc{:})    , cat(1, Pot{:})    );
     if useGPU
-        [Trj, Acc, Pot] = deal(gpuArray(Trj), gpuArray(Acc), gpuArray(Pot));
+        [Trj, Acc, Pot] = deal(gpuArray(Trj)     , gpuArray(Acc)     , gpuArray(Pot)     );
     end
-    [Trj, Acc, Pot] = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
+    [Trj, Acc, Pot]     = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
 end
 
 mbq = minibatchqueue(ds.train, ...
@@ -75,26 +74,23 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
 
     % Loop over mini-batches
     while hasdata(mbq) && ~monitor.Stop && ~earlyStop && iteration < opt.numIterations
-        iteration = iteration + 1;
-
-        % Read mini-batch.
-        [Trj, Acc, Pot] = next(mbq);
-
-        % Eval and update state
-        [loss, gradients, state] = dlfeval(modelLoss, net, Trj, Acc, Pot);
-        net.State = state;
-
-        % Update net with Adam optimizer
+        iteration                         = iteration + 1;
+        [Trj, Acc, Pot]                   = next(mbq);
+        [loss, gradients, net.State]      = dlfeval(modelLoss, net, Trj, Acc, Pot, true);
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, opt.learnRate);
 
-        % Training monitor
         recordMetrics(monitor, iteration, TrainingLoss = loss);
-        updateInfo(monitor, Epoch = string(epoch) + " / " + string(opt.numEpochs), Iteration = iteration, LearningRate = opt.learnRate);
+        updateInfo(monitor, ...
+            Epoch        = string(epoch) + " / " + string(opt.numEpochs), ...
+            Iteration    = iteration                                    , ...
+            LearningRate = opt.learnRate                                  ...
+        );
 
-        % Validation monitor
+        % Validation
         if iteration == 1 || 0 == mod(iteration, floor(opt.numIterationsPerEpoch / opt.validationFrequency))
-            [TrjV, AccV, PotV] = next(mbqVal);
-            validationLoss = dlfeval(modelLossNoGrad, net, TrjV, AccV, PotV);
+            [TrjV, AccV, PotV]     = next(mbqVal);
+            [validationLoss, ~, ~] = dlfeval(modelLoss, net, TrjV, AccV, PotV, false);
+            
             recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
 
             % Early stopping

@@ -1,7 +1,7 @@
 dataset = load("src/data/dataset.mat");
 
 % Parameters
-dataset.params = struct();
+dataset.params  = struct();
 splitPercentage = 0.9;
 assert(splitPercentage > 0, 'split percentage must be greater than 0');
 assert(splitPercentage < 1, 'split percentage must be less than 1');

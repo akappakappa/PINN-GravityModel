@@ -1,22 +1,10 @@
-function [SPH, Radius] = cart2sphLayer(TRJ)
-    % Trajectory (cartesian to spherical)
-    x = TRJ(1, :);
-    y = TRJ(2, :);
-    z = TRJ(3, :);
+function [Spherical, Radius] = cart2sphLayer(Trajectory)
+    % Get cartesian coordinates
+    [x, y, z] = deal(Trajectory(1, :), Trajectory(2, :), Trajectory(3, :));
 
-    % Replacing to keep tracing for dlgradient: [theta, phi, r] = cart2sph(x, y, z);
-    r = vecnorm(TRJ, 2, 1);
-
-    s = sin(x ./ r);
-    t = sin(y ./ r);
-    u = sin(z ./ r);
-    
-    ri = min(r, 1);
-    re = max(r, 1);
-    re = 1 ./ re;
-
-    SPH = [ri; re; s; t; u];
-
-    % Potential (proxy)
-    Radius = r;
+    % Convert to spherical coordinates
+    Radius    = vecnorm(Trajectory, 2, 1);
+    [s, t, u] = deal(sin(x ./ Radius), sin(y ./ Radius), sin(z ./ Radius));
+    [ri, re]  = deal(min(Radius, 1), 1 ./ max(Radius, 1));
+    Spherical = [ri; re; s; t; u];
 end
