@@ -10,6 +10,20 @@ dataset.params.splitPercentage = splitPercentage;
 % Call preprocessing function preset
 preprocessed = presets.PINN_GM_III(dataset);
 
+% Create directories if they do not exist
+if ~exist("datastore", "dir")
+    mkdir("datastore");
+end
+if ~exist("datastore/train", "dir")
+    mkdir("datastore/train");
+end
+if ~exist("datastore/validation", "dir")
+    mkdir("datastore/validation");
+end
+if ~exist("datastore/metrics", "dir")
+    mkdir("datastore/metrics");
+end
+
 % Save preprocessed training data
 writematrix(preprocessed.trainTRJ     , "datastore/train/Trj.csv"     );
 writematrix(preprocessed.trainACC     , "datastore/train/Acc.csv"     );
@@ -27,5 +41,8 @@ writematrix(preprocessed.mPlanesPOT, "datastore/metrics/PlanesPot.csv");
 writematrix(preprocessed.mRandomTRJ, "datastore/metrics/RandomTrj.csv");
 writematrix(preprocessed.mRandomACC, "datastore/metrics/RandomAcc.csv");
 writematrix(preprocessed.mRandomPOT, "datastore/metrics/RandomPot.csv");
+
+% Add folder to path recursively
+addpath(genpath("datastore"));
 
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
