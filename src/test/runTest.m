@@ -1,17 +1,25 @@
 % Load data
-PlanesTrj = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesTrj.csv"), 'BC');
-PlanesAcc = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesAcc.csv"), 'BC');
-PlanesPot = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesPot.csv"), 'BC');
+PlanesTrj         = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesTrj.csv"        ), 'BC');
+PlanesAcc         = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesAcc.csv"        ), 'BC');
+PlanesPot         = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesPot.csv"        ), 'BC');
 
-RandomTrj = dlarray(readmatrix("src/preprocessing/datastore/metrics/RandomTrj.csv"), 'BC');
-RandomAcc = dlarray(readmatrix("src/preprocessing/datastore/metrics/RandomAcc.csv"), 'BC');
-RandomPot = dlarray(readmatrix("src/preprocessing/datastore/metrics/RandomPot.csv"), 'BC');
+GeneralizationTrj = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationTrj.csv"), 'BC');
+GeneralizationAcc = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationAcc.csv"), 'BC');
+GeneralizationPot = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationPot.csv"), 'BC');
+
+SurfaceTrj        = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfaceTrj.csv"       ), 'BC');
+SurfaceAcc        = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfaceAcc.csv"       ), 'BC');
+SurfacePot        = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfacePot.csv"       ), 'BC');
 
 % Load Network
 net = load("src/training/net.mat").net;
 
 % Compute metrics
-PlanesMetric      = dlfeval(@planes     , net, PlanesTrj, PlanesAcc, PlanesPot);
-fprintf("Planes metric: %f\n"     , PlanesMetric     );
-GeneralizedMetric = dlfeval(@generalized, net, RandomTrj, RandomAcc, RandomPot);
-fprintf("Generalized metric: %f\n", GeneralizedMetric);
+PlanesMetric         = dlfeval(@presets.planes        , net, PlanesTrj        , PlanesAcc        , PlanesPot        );
+fprintf("Planes metric         : %f\n", PlanesMetric        );
+
+GeneralizationMetric = dlfeval(@presets.generalization, net, GeneralizationTrj, GeneralizationAcc, GeneralizationPot);
+fprintf("Generalization metric : %f\n", GeneralizationMetric);
+
+SurfaceMetric        = dlfeval(@presets.surface       , net, SurfaceTrj       , SurfaceAcc       , SurfacePot       );
+fprintf("Surface metric        : %f\n", SurfaceMetric       );

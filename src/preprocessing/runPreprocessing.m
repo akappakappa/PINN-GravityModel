@@ -2,7 +2,7 @@ dataset = load("src/data/dataset.mat");
 
 % Parameters
 dataset.params  = struct();
-splitPercentage = 0.9;
+splitPercentage = 0.99;
 assert(splitPercentage > 0, 'split percentage must be greater than 0');
 assert(splitPercentage < 1, 'split percentage must be less than 1');
 dataset.params.splitPercentage = splitPercentage;
@@ -35,12 +35,15 @@ writematrix(preprocessed.validationPOT, "datastore/validation/Pot.csv");
 writestruct(preprocessed.params, "datastore/params.json");
 
 % Save preprocessed metrics data
-writematrix(preprocessed.mPlanesTRJ, "datastore/metrics/PlanesTrj.csv");
-writematrix(preprocessed.mPlanesACC, "datastore/metrics/PlanesAcc.csv");
-writematrix(preprocessed.mPlanesPOT, "datastore/metrics/PlanesPot.csv");
-writematrix(preprocessed.mRandomTRJ, "datastore/metrics/RandomTrj.csv");
-writematrix(preprocessed.mRandomACC, "datastore/metrics/RandomAcc.csv");
-writematrix(preprocessed.mRandomPOT, "datastore/metrics/RandomPot.csv");
+writematrix(preprocessed.mPlanesTRJ        , "datastore/metrics/PlanesTrj.csv");
+writematrix(preprocessed.mPlanesACC        , "datastore/metrics/PlanesAcc.csv");
+writematrix(preprocessed.mPlanesPOT        , "datastore/metrics/PlanesPot.csv");
+writematrix(preprocessed.mGeneralizationTRJ, "datastore/metrics/GeneralizationTrj.csv");
+writematrix(preprocessed.mGeneralizationACC, "datastore/metrics/GeneralizationAcc.csv");
+writematrix(preprocessed.mGeneralizationPOT, "datastore/metrics/GeneralizationPot.csv");
+writematrix(preprocessed.mSurfaceTRJ       , "datastore/metrics/SurfaceTrj.csv");
+writematrix(preprocessed.mSurfaceACC       , "datastore/metrics/SurfaceAcc.csv");
+writematrix(preprocessed.mSurfacePOT       , "datastore/metrics/SurfacePot.csv");
 
 % Add folder to path recursively
 addpath(genpath("datastore"));

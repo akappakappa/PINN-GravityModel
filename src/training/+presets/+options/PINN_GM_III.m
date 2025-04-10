@@ -11,7 +11,7 @@ function options = PINN_GM_III(num)
     verbose               = true;
     verboseFrequency      = 2^6;
     validationFrequency   = 1;
-    validationPatience    = 5;
+    validationPatience    = 10;
 
     options = struct( ...
         "numEpochs"            , numEpochs            , ...

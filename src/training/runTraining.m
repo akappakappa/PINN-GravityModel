@@ -50,11 +50,13 @@ monitor = trainingProgressMonitor( ...
 groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
 
 % Initialize loop
-epoch         = 0;
-iteration     = 0;
-averageGrad   = [];
-averageSqGrad = [];
-earlyStop     = false;
+epoch              = 0;
+iteration          = 0;
+averageGrad        = [];
+averageSqGrad      = [];
+earlyStop          = false;
+bestValidationLoss = inf;
+bestNet            = net;
 if opt.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
@@ -87,11 +89,17 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
         );
 
         % Validation
-        if iteration == 1 || 0 == mod(iteration, floor(opt.numIterationsPerEpoch / opt.validationFrequency))
+        if 1 == iteration || 0 == mod(iteration, floor(opt.numIterationsPerEpoch / opt.validationFrequency))
             [TrjV, AccV, PotV]     = next(mbqVal);
             [validationLoss, ~, ~] = dlfeval(modelLoss, net, TrjV, AccV, PotV, false);
             
             recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
+
+            % Snapshot
+            if validationLoss < bestValidationLoss
+                bestValidationLoss = validationLoss;
+                bestNet            = net;
+            end
 
             % Early stopping
             if isfinite(opt.validationPatience)
@@ -102,16 +110,16 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
                     validationLosses(1) = [];
                 end
             end
+
+            % Verbose
+            if opt.verbose
+                D = duration(0, 0, toc(start), Format = "hh:mm:ss");
+                fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n", ...
+                    epoch, iteration, D, loss, validationLoss, opt.learnRate ...
+                );
+            end
         end
         monitor.Progress = 100 * iteration / opt.numIterations;
-
-        % Verbose
-        if opt.verbose && (1 == iteration || 0 == mod(iteration, opt.verboseFrequency))
-            D = duration(0, 0, toc(start), Format = "hh:mm:ss");
-            fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n", ...
-                epoch, iteration, D, loss, validationLoss, opt.learnRate ...
-            );
-        end
     end
         
     % Update learning rate
@@ -122,4 +130,4 @@ end
 if opt.verbose, fprintf("|========================================================================================|\n"); end
 
 % Save
-save("net", "net");
+save("net", "bestNet");

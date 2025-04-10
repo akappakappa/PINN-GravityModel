@@ -1,17 +1,7 @@
 function data = PINN_GM_III(data)
-    data = pCombineMetricsRandomDist(data);
     data = pAddExtraParameters(data);
     data = pNonDimensionalize(data);
     data = pMakeValidationSet(data);
-
-    function data = pCombineMetricsRandomDist(data)
-        % Handle 0R-1R 1R-10R 10R-100R data together
-        data.mRandomTRJ = cat(1, data.mRandomTRJ_0_1, data.mRandomTRJ_1_10, data.mRandomTRJ_10_100);
-        data.mRandomACC = cat(1, data.mRandomACC_0_1, data.mRandomACC_1_10, data.mRandomACC_10_100);
-        data.mRandomPOT = cat(1, data.mRandomPOT_0_1, data.mRandomPOT_1_10, data.mRandomPOT_10_100);
-
-        clearvars data.mRandomTRJ_0_1 data.mRandomTRJ_1_10 data.mRandomTRJ_10_100;
-    end
 
     function data = pAddExtraParameters(data)
         % Radius Max
@@ -51,9 +41,14 @@ function data = PINN_GM_III(data)
         data.mPlanesTRJ = data.mPlanesTRJ ./ sTRJ;
         data.mPlanesACC = data.mPlanesACC ./ sACC;
         data.mPlanesPOT = data.mPlanesPOT ./ sPOT;
-        data.mRandomTRJ = data.mRandomTRJ ./ sTRJ;
-        data.mRandomACC = data.mRandomACC ./ sACC;
-        data.mRandomPOT = data.mRandomPOT ./ sPOT;
+
+        data.mGeneralizationTRJ = data.mGeneralizationTRJ ./ sTRJ;
+        data.mGeneralizationACC = data.mGeneralizationACC ./ sACC;
+        data.mGeneralizationPOT = data.mGeneralizationPOT ./ sPOT;
+
+        data.mSurfaceTRJ = data.mSurfaceTRJ ./ sTRJ;
+        data.mSurfaceACC = data.mSurfaceACC ./ sACC;
+        data.mSurfacePOT = data.mSurfacePOT ./ sPOT;
 
         % Scale parameters
         data.params.mu = data.params.mu .* sMU;

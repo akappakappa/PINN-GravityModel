@@ -7,7 +7,7 @@
 
 close all; clear; clc;
 addpath(genpath("src"));
-DO_DATA_EXTRACTION = false;
+DO_DATA_EXTRACTION = true;
 DO_PREPROCESSING   = true;
 DO_TRAINING        = true;
 DO_TESTING         = true;
