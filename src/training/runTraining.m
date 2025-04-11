@@ -7,25 +7,19 @@ data                      = tLoadDatastore("src/preprocessing/datastore");
 [tMBQ, vMBQ]              = tSetupMinibatchQueues(data, options, useGPU);
 
 % Preparations - Loop
-epoch              = 0;
-iteration          = 0;
-averageGrad        = [];
-averageSqGrad      = [];
-bestValidationLoss = Inf;
-bestNet            = net;
-if "plateau" == options.learnRateSchedule
-    patience         = options.learnRatePatience;
-    validationLosses = zeros(1, options.learnRatePatience);
-end
+epoch         = 0;
+iteration     = 0;
+averageGrad   = [];
+averageSqGrad = [];
+bestNet       = net;
 
 % Preparations - Monitoring
 monitor = trainingProgressMonitor( ...
-    Metrics = ["TrainingLoss", "ValidationLoss"], ...
+    Metrics = ["TrainingLoss", "ValidationLoss"]    , ...
     Info    = ["Epoch", "LearningRate", "Iteration"], ...
-    XLabel  = "Iteration" ...
+    XLabel  = "Iteration"                             ...
 );
 groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
-
 if options.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
@@ -41,56 +35,42 @@ while epoch < options.numEpochs && ~monitor.Stop
     shuffle(vMBQ);
 
     % Loop over mini-batches
-    while hasdata(tMBQ) && ~monitor.Stop && iteration < options.numIterations
+    while hasdata(tMBQ) && ~monitor.Stop
         iteration                         = iteration + 1;
         [Trj, Acc, Pot]                   = next(tMBQ);
         [loss, gradients, net.State]      = dlfeval(modelLoss, net, Trj, Acc, Pot, true);
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
-
+        
         recordMetrics(monitor, iteration, TrainingLoss = loss);
+
+        % Validation
+        if (1 == iteration || 0 == mod(iteration, options.numIterationsPerEpoch)) && hasdata(vMBQ) && ~monitor.Stop
+            [Trj, Acc, Pot]        = next(vMBQ);
+            [validationLoss, ~, ~] = dlfeval(modelLoss, net, Trj, Acc, Pot, false);
+            
+            recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
+            if options.verbose
+                D = duration(0, 0, toc(start), Format = "hh:mm:ss");
+                fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n"    , ...
+                    epoch, iteration, D, loss, validationLoss, options.learnRate  ...
+                );
+            end
+
+            % Snapshot
+            if options.learnRateSchedule.isNewBest(validationLoss)
+                bestNet = net;
+            end
+
+            % LR Schedule
+            [options.learnRateSchedule, options.learnRate] = options.learnRateSchedule.update(options.learnRate, validationLoss);
+        end
+
+        % Monitoring
         updateInfo(monitor, ...
             Epoch        = string(epoch) + " / " + string(options.numEpochs), ...
             Iteration    = iteration                                        , ...
             LearningRate = options.learnRate                                  ...
         );
-
-        % Validation
-        if 1 == iteration || 0 == mod(iteration, floor(options.numIterationsPerEpoch / options.validationFrequency))
-            [Trj, Acc, Pot]        = next(vMBQ);
-            [validationLoss, ~, ~] = dlfeval(modelLoss, net, Trj, Acc, Pot, false);
-            
-            recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
-
-            % Snapshot
-            if validationLoss < bestValidationLoss
-                bestValidationLoss = validationLoss;
-                bestNet            = net;
-            end
-
-            % Patience
-            if "plateau" == options.learnRateSchedule
-                validationLosses = [validationLosses validationLoss];
-                if min(validationLosses) == validationLosses(1)
-                    patience = patience - 1;
-                else
-                    patience            = options.learnRatePatience;
-                    validationLosses(1) = [];
-                end
-                if 0 == patience
-                    options.learnRate = max(options.learnRate * options.learnRateDropFactor, options.learnRateMinLearnRate);
-                    patience          = options.learnRatePatience;
-                    validationLosses  = zeros(1, options.learnRatePatience);
-                end
-            end
-
-            % Monitoring
-            if options.verbose
-                D = duration(0, 0, toc(start), Format = "hh:mm:ss");
-                fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n", ...
-                    epoch, iteration, D, loss, validationLoss, options.learnRate ...
-                );
-            end
-        end
         monitor.Progress = 100 * iteration / options.numIterations;
     end
 end
@@ -141,8 +121,8 @@ function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, useGPU)
         MiniBatchSize = options.miniBatchSize                                        ...
     );
     
-    vMBQ = minibatchqueue(data.validation                                                                                                               , ...
-        MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU)                                                                     , ...
-        MiniBatchSize = floor(data.params.split(2) / options.numIterationsPerEpoch) * floor(options.numIterationsPerEpoch / options.validationFrequency)  ...
+    vMBQ = minibatchqueue(data.validation                                                                          , ...
+        MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU)                                , ...
+        MiniBatchSize = floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch  ...
     );
 end
