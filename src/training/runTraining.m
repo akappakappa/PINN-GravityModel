@@ -1,47 +1,24 @@
 executionEnvironment = "auto";
 useGPU               = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
 
-% Load datastore
-ds.params     = readstruct("src/preprocessing/datastore/params.json");
-ds.train      = shuffle(combine( ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Trj.csv"     )), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Acc.csv"     )), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/train/Pot.csv"     ))  ...
-));
-ds.validation = shuffle(combine( ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Trj.csv")), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Acc.csv")), ...
-    arrayDatastore(readmatrix("src/preprocessing/datastore/validation/Pot.csv"))  ...
-));
+% Preparations - Data
+data                      = tLoadDatastore("src/preprocessing/datastore");
+[net, modelLoss, options] = tLoadPresets(data, useGPU);
+[tMBQ, vMBQ]              = tSetupMinibatchQueues(data, options, useGPU);
 
-% Presets
-net       = initialize(presets.network.PINN_GM_III(ds.params.mu, ds.params.e));
-modelLoss = dlaccelerate(@presets.loss.PINN_GM_III);
-opt       = presets.options.PINN_GM_III(ds.params.split(1));
-if useGPU
-    net   = dlupdate(@gpuArray, net);
+% Preparations - Loop
+epoch              = 0;
+iteration          = 0;
+averageGrad        = [];
+averageSqGrad      = [];
+bestValidationLoss = Inf;
+bestNet            = net;
+if "plateau" == options.learnRateSchedule
+    patience         = options.learnRatePatience;
+    validationLosses = zeros(1, options.learnRatePatience);
 end
 
-% Mini-batch
-function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot, useGPU)
-    [Trj, Acc, Pot]     = deal(cat(1, Trj{:})    , cat(1, Acc{:})    , cat(1, Pot{:})    );
-    if useGPU
-        [Trj, Acc, Pot] = deal(gpuArray(Trj)     , gpuArray(Acc)     , gpuArray(Pot)     );
-    end
-    [Trj, Acc, Pot]     = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
-end
-
-mbq = minibatchqueue(ds.train, ...
-    MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU), ...
-    MiniBatchSize = opt.miniBatchSize ...
-);
-
-mbqVal = minibatchqueue(ds.validation, ...
-    MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU), ...
-    MiniBatchSize = floor(ds.params.split(2) / opt.numIterationsPerEpoch) * floor(opt.numIterationsPerEpoch / opt.validationFrequency) ...
-);
-
-% Monitor
+% Preparations - Monitoring
 monitor = trainingProgressMonitor( ...
     Metrics = ["TrainingLoss", "ValidationLoss"], ...
     Info    = ["Epoch", "LearningRate", "Iteration"], ...
@@ -49,49 +26,38 @@ monitor = trainingProgressMonitor( ...
 );
 groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
 
-% Initialize loop
-epoch              = 0;
-iteration          = 0;
-averageGrad        = [];
-averageSqGrad      = [];
-earlyStop          = false;
-bestValidationLoss = inf;
-bestNet            = net;
-if opt.verbose
+if options.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
     fprintf("|         |             |   (hh:mm:ss)   |     Loss     |     Loss     |      Rate       |\n");
     fprintf("|========================================================================================|\n");
 end
-start = tic;
-if isfinite(opt.validationPatience)
-    validationLosses = inf(1, opt.validationPatience);
-end
 
 % Loop
-while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
+start = tic;
+while epoch < options.numEpochs && ~monitor.Stop
     epoch = epoch + 1;
-    shuffle(mbq);
-    shuffle(mbqVal);
+    shuffle(tMBQ);
+    shuffle(vMBQ);
 
     % Loop over mini-batches
-    while hasdata(mbq) && ~monitor.Stop && ~earlyStop && iteration < opt.numIterations
+    while hasdata(tMBQ) && ~monitor.Stop && iteration < options.numIterations
         iteration                         = iteration + 1;
-        [Trj, Acc, Pot]                   = next(mbq);
+        [Trj, Acc, Pot]                   = next(tMBQ);
         [loss, gradients, net.State]      = dlfeval(modelLoss, net, Trj, Acc, Pot, true);
-        [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, opt.learnRate);
+        [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
 
         recordMetrics(monitor, iteration, TrainingLoss = loss);
         updateInfo(monitor, ...
-            Epoch        = string(epoch) + " / " + string(opt.numEpochs), ...
-            Iteration    = iteration                                    , ...
-            LearningRate = opt.learnRate                                  ...
+            Epoch        = string(epoch) + " / " + string(options.numEpochs), ...
+            Iteration    = iteration                                        , ...
+            LearningRate = options.learnRate                                  ...
         );
 
         % Validation
-        if 1 == iteration || 0 == mod(iteration, floor(opt.numIterationsPerEpoch / opt.validationFrequency))
-            [TrjV, AccV, PotV]     = next(mbqVal);
-            [validationLoss, ~, ~] = dlfeval(modelLoss, net, TrjV, AccV, PotV, false);
+        if 1 == iteration || 0 == mod(iteration, floor(options.numIterationsPerEpoch / options.validationFrequency))
+            [Trj, Acc, Pot]        = next(vMBQ);
+            [validationLoss, ~, ~] = dlfeval(modelLoss, net, Trj, Acc, Pot, false);
             
             recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
 
@@ -101,33 +67,82 @@ while epoch < opt.numEpochs && ~monitor.Stop && ~earlyStop
                 bestNet            = net;
             end
 
-            % Early stopping
-            if isfinite(opt.validationPatience)
+            % Patience
+            if "plateau" == options.learnRateSchedule
                 validationLosses = [validationLosses validationLoss];
                 if min(validationLosses) == validationLosses(1)
-                    earlyStop = true;
+                    patience = patience - 1;
                 else
+                    patience            = options.learnRatePatience;
                     validationLosses(1) = [];
+                end
+                if 0 == patience
+                    options.learnRate = max(options.learnRate * options.learnRateDropFactor, options.learnRateMinLearnRate);
+                    patience          = options.learnRatePatience;
+                    validationLosses  = zeros(1, options.learnRatePatience);
                 end
             end
 
-            % Verbose
-            if opt.verbose
+            % Monitoring
+            if options.verbose
                 D = duration(0, 0, toc(start), Format = "hh:mm:ss");
                 fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n", ...
-                    epoch, iteration, D, loss, validationLoss, opt.learnRate ...
+                    epoch, iteration, D, loss, validationLoss, options.learnRate ...
                 );
             end
         end
-        monitor.Progress = 100 * iteration / opt.numIterations;
-    end
-        
-    % Update learning rate
-    if "piecewise" == opt.learnRateSchedule && 0 == mod(epoch, opt.learnRateDropPeriod)
-        opt.learnRate = opt.learnRate * opt.learnRateDropFactor;
+        monitor.Progress = 100 * iteration / options.numIterations;
     end
 end
-if opt.verbose, fprintf("|========================================================================================|\n"); end
+if options.verbose
+    fprintf("|========================================================================================|\n");
+end
 
 % Save
-save("net", "bestNet");
+net = bestNet;
+save("net", "net");
+return
+
+function data = tLoadDatastore(path)
+    data            = struct();
+    data.params     = readstruct(path + "/params.json");
+    data.train      = shuffle(combine( ...
+        arrayDatastore(readmatrix(path + "/train/Trj.csv"     )), ...
+        arrayDatastore(readmatrix(path + "/train/Acc.csv"     )), ...
+        arrayDatastore(readmatrix(path + "/train/Pot.csv"     ))  ...
+    ));
+    data.validation = shuffle(combine( ...
+        arrayDatastore(readmatrix(path + "/validation/Trj.csv")), ...
+        arrayDatastore(readmatrix(path + "/validation/Acc.csv")), ...
+        arrayDatastore(readmatrix(path + "/validation/Pot.csv"))  ...
+    ));
+end
+
+function [network, loss, options] = tLoadPresets(data, useGPU)    
+    network = initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e));
+    loss    = dlaccelerate(@presets.loss.PINN_GM_III);
+    options = presets.options.PINN_GM_III(data.params.split(1));
+    if useGPU
+        network = dlupdate(@gpuArray, network);
+    end
+end
+
+function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, useGPU)
+    function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot, useGPU)
+        [Trj, Acc, Pot]     = deal(cat(1, Trj{:})    , cat(1, Acc{:})    , cat(1, Pot{:})    );
+        if useGPU
+            [Trj, Acc, Pot] = deal(gpuArray(Trj)     , gpuArray(Acc)     , gpuArray(Pot)     );
+        end
+        [Trj, Acc, Pot]     = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
+    end
+    
+    tMBQ = minibatchqueue(data.train                                               , ...
+        MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU), ...
+        MiniBatchSize = options.miniBatchSize                                        ...
+    );
+    
+    vMBQ = minibatchqueue(data.validation                                                                                                               , ...
+        MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU)                                                                     , ...
+        MiniBatchSize = floor(data.params.split(2) / options.numIterationsPerEpoch) * floor(options.numIterationsPerEpoch / options.validationFrequency)  ...
+    );
+end
