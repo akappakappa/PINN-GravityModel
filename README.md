@@ -20,7 +20,7 @@ The code entry-point is [main](./src/main.m), which simply conditionally launche
     - Non-dimensionalizes the dataset.
     - Splits the dataset with a ratio 9:1 into training:validation sets.
 3. [Training](./src/training/runTraining.m) contains the main loop:
-    - [Network structure](./src/training/+presets/+network/PINN_GM_III.m), with [custom layers](./src/training/+presets/+network/+customLayer/) for feature engineering, prediction adjustments and model fusion. \
+    - [Network structure](./src/training/+presets/+network/PINN_GM_III.m), with [custom layers](./src/training/+presets/+layer/) for feature engineering, prediction adjustments and model fusion. \
     $\hat{U}(r)=w_{NN}(w_{F}U_{LF}(r)+\hat{U}_{NN}(r))+w_{BC}U_{LF}(r)$ \
     where $w$ are transition functions $H(r,s,ref)=\frac{1+tanh(s(r-ref))}{2}$ \
     and $w_{NN}=1-w_{BC}$
@@ -28,8 +28,10 @@ The code entry-point is [main](./src/main.m), which simply conditionally launche
     $L_{RMS+MPE}(\theta)=\frac{1}{N}\sum_{i=0}^N\left(\sqrt{\left|-\nabla\hat{U}(x_i|\theta)-a_i\right|^2}+\frac{\left|-\nabla\hat{U}(x_i|\theta)-a_i\right|}{|a_i|}\right)$ \
     where $\nabla\hat{U}(x_i|\theta)$ is the differentaited network potential and $a_i$ is the true acceleration.
 4. [Test Metrics](./src/test/runTest.m) **TODO** implements the following metrics:
-    - Generalized ...
-    - Planes ...
+    - [x] Planes
+    - [x] Generalized
+    - [x] Surface
+    - [ ] Trajectory NEAR (unable to generate it, missing files from [GravNN](https://github.com/MartinAstro/GravNN))
  
 ## Authors
 Computer Engineering @ Unversity Of Padua, Italy:
