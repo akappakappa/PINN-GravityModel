@@ -89,7 +89,7 @@ while epoch < options.numEpochs && ~monitor.Stop
     end
 
     % Checkpoints
-    if 0 == mod(epoch, 2^8)
+    if 0 == mod(epoch, 2^6)
         save("checkpoint", "bestNet", "options", "epoch", "averageGrad", "averageSqGrad");
     end
 end
