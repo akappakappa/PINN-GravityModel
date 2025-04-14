@@ -1,5 +1,6 @@
-executionEnvironment = "auto";
-useGPU               = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
+executionEnvironment  = "auto";
+recoverFromCheckpoint = false;
+useGPU                = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
 
 % Preparations - Data
 data                      = tLoadDatastore("src/preprocessing/datastore");
@@ -12,6 +13,17 @@ iteration     = 0;
 averageGrad   = [];
 averageSqGrad = [];
 bestNet       = net;
+
+% Recovering from checkpoint
+if recoverFromCheckpoint
+    checkpoint    = load("checkpoint");
+    net           = checkpoint.bestNet;
+    bestNet       = net;
+    options       = checkpoint.options;    
+    epoch         = checkpoint.epoch;
+    averageGrad   = checkpoint.averageGrad;
+    averageSqGrad = checkpoint.averageSqGrad;
+end
 
 % Preparations - Monitoring
 monitor = trainingProgressMonitor( ...
@@ -72,6 +84,11 @@ while epoch < options.numEpochs && ~monitor.Stop
             LearningRate = options.learnRate                                  ...
         );
         monitor.Progress = 100 * iteration / options.numIterations;
+    end
+
+    % Checkpoints
+    if 0 == mod(epoch, 2^8)
+        save("checkpoint", "bestNet", "options", "epoch", "averageGrad", "averageSqGrad");
     end
 end
 if options.verbose
