@@ -1,4 +1,5 @@
 executionEnvironment  = "auto";
+headless              = false;
 recoverFromCheckpoint = false;
 useGPU                = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
 
@@ -26,12 +27,7 @@ if recoverFromCheckpoint
 end
 
 % Preparations - Monitoring
-monitor = trainingProgressMonitor( ...
-    Metrics = ["TrainingLoss", "ValidationLoss"]    , ...
-    Info    = ["Epoch", "LearningRate", "Iteration"], ...
-    XLabel  = "Iteration"                             ...
-);
-groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
+monitor = tMakeMonitor(headless);
 if options.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
@@ -53,14 +49,18 @@ while epoch < options.numEpochs && ~monitor.Stop
         [loss, gradients, net.State]      = dlfeval(modelLoss, net, Trj, Acc, Pot, true);
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
         
-        recordMetrics(monitor, iteration, TrainingLoss = loss);
-
+        if ~headless
+            recordMetrics(monitor, iteration, TrainingLoss = loss);
+        end
+        
         % Validation
         if (1 == iteration || 0 == mod(iteration, options.numIterationsPerEpoch)) && hasdata(vMBQ) && ~monitor.Stop
             [Trj, Acc, Pot]        = next(vMBQ);
             [validationLoss, ~, ~] = dlfeval(modelLoss, net, Trj, Acc, Pot, false);
             
-            recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
+            if ~headless
+                recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
+            end
             if options.verbose
                 D = duration(0, 0, toc(start), Format = "hh:mm:ss");
                 fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n"    , ...
@@ -78,12 +78,14 @@ while epoch < options.numEpochs && ~monitor.Stop
         end
 
         % Monitoring
-        updateInfo(monitor, ...
-            Epoch        = string(epoch) + " / " + string(options.numEpochs), ...
-            Iteration    = iteration                                        , ...
-            LearningRate = options.learnRate                                  ...
-        );
-        monitor.Progress = 100 * iteration / options.numIterations;
+        if ~headless
+            updateInfo(monitor, ...
+                Epoch        = string(epoch) + " / " + string(options.numEpochs), ...
+                Iteration    = iteration                                        , ...
+                LearningRate = options.learnRate                                  ...
+            );
+            monitor.Progress = 100 * iteration / options.numIterations;
+        end
     end
 
     % Checkpoints
@@ -142,4 +144,19 @@ function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, useGPU)
         MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU)                                , ...
         MiniBatchSize = floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch  ...
     );
+end
+
+function monitor = tMakeMonitor(headless)
+    if ~headless
+        monitor = trainingProgressMonitor( ...
+            Metrics = ["TrainingLoss", "ValidationLoss"]    , ...
+            Info    = ["Epoch", "LearningRate", "Iteration"], ...
+            XLabel  = "Iteration"                             ...
+        );
+        groupSubPlot(monitor, "Loss", ["TrainingLoss", "ValidationLoss"]);
+    else
+        monitor          = struct();
+        monitor.Stop     = false;
+        monitor.Progress = 0;
+    end
 end
