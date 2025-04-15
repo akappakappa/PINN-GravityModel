@@ -69,7 +69,7 @@ while epoch < options.numEpochs && ~monitor.Stop
             end
 
             % Snapshot
-            if options.learnRateSchedule.isNewBest(validationLoss)
+            if validationLoss < options.learnRateSchedule.BestValidationLoss
                 bestNet = net;
             end
 

@@ -1,4 +1,4 @@
-classdef plateauLearnRate < presets.schedule.AbstractLearnRate
+classdef plateauLearnRate < deep.LearnRateSchedule
     properties
         BestValidationLoss
         Decay
@@ -23,13 +23,9 @@ classdef plateauLearnRate < presets.schedule.AbstractLearnRate
             schedule.Patience           = args.Patience;
             schedule.PatienceNow        = args.Patience;
         end
-
-        function condition = isNewBest(schedule, validationLoss)
-            condition = validationLoss < schedule.BestValidationLoss - schedule.MinDelta;
-        end
         
         function [schedule, learnRate] = update(schedule, learnRate, validationLoss)
-            if schedule.isNewBest(validationLoss)
+            if validationLoss < schedule.BestValidationLoss - schedule.MinDelta
                 schedule.BestValidationLoss = validationLoss;
                 schedule.PatienceNow        = schedule.Patience;
             else
