@@ -12,9 +12,9 @@ function net = PINN_GM_III_F(mu, e)
     % Define the NN layers
     layersNN = [];
     depthNN  = 6;
-    layersNN = [layersNN, presets.layer.factorizedLayer(5, 32, 2, "Name", "factorized1"), geluLayer("Name", "gelu1")];
+    layersNN = [layersNN, presets.layer.factorizedLayer(5, 32, 5, "Name", "factorized1"), geluLayer("Name", "gelu1")];
     for i = 1:depthNN - 1
-        layersNN = [layersNN, presets.layer.factorizedLayer(32, 32, 16, "Name", sprintf("factorized%d", i + 1)), geluLayer("Name", sprintf("act%d", i + 1))];
+        layersNN = [layersNN, presets.layer.factorizedLayer(32, 32, 12, "Name", sprintf("factorized%d", i + 1)), geluLayer("Name", sprintf("act%d", i + 1))];
     end
     layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN + 1))];
 
