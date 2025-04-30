@@ -9,7 +9,6 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
         InputSize
         OutputSize
         Rank
-        Dummy
     end
     
     methods
@@ -33,19 +32,16 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
 
             % Spectral initialization for W1 and W2
             [U, S, V] = svds(W, Rank);
-            layer.W1 = dlarray(U * sqrt(S));
-            layer.W2 = dlarray(sqrt(S) * V');
+            layer.W1  = dlarray(U * sqrt(S));
+            layer.W2  = dlarray(sqrt(S) * V');
 
             % Bias initialization
-            layer.Bias  = dlarray(zeros(OutputSize, 1));
-            layer.Dummy = dlarray(zeros(Rank, 1));
+            layer.Bias = dlarray(zeros(OutputSize, 1));
         end
         
         function Z = predict(layer, X)
-            % Compute the output of the layer using the factorized weights
             W = layer.W1 * layer.W2;
             Z = fullyconnect(X, W, layer.Bias);
         end
-        
     end
 end
