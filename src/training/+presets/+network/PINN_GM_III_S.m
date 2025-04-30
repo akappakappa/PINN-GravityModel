@@ -12,11 +12,11 @@ function net = PINN_GM_III_S(mu, e)
     % Define the NN layers
     layersNN = [];
     depthNN  = 6;
-    layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 30, "Name", "siren1")];
+    layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 1, "Name", "siren1")];
     for i = 1:depthNN - 1
         layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i + 1))];
     end
-    layersNN     = [layersNN, presets.layer.sirenLayer(32, 1, 1, "Name", sprintf("siren%d", depthNN + 1))];
+    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN + 1))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
@@ -36,7 +36,7 @@ function net = PINN_GM_III_S(mu, e)
 
     % Connect NN layers
     net = connectLayers(net, "cart2sphLayer/Spherical", "siren1/in"                         );
-    net = connectLayers(net, "siren7"                    , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "fc7"                    , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius"   , "scaleNNPotentialLayer/Radius"   );
 
     % Connect Low-Fidelity Analytic Model layers
