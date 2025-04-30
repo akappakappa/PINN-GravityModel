@@ -12,11 +12,11 @@ function net = PINN_GM_III_S(mu, e)
     % Define the NN layers
     layersNN = [];
     depthNN  = 6;
-    layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 30, "siren1")];
+    layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 30, "Name", "siren1")];
     for i = 1:depthNN - 1
-        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, sprintf("siren%d", i+1))];
+        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i + 1))];
     end
-    layersNN     = [layersNN, presets.layer.sirenLayer(32, 1, 1, sprintf("siren%d", depthNN+1))];
+    layersNN     = [layersNN, presets.layer.sirenLayer(32, 1, 1, "Name", sprintf("siren%d", depthNN + 1))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
