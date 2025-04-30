@@ -10,17 +10,23 @@ classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.F
     end
     
     methods
-        function layer = sirenLayer(inputSize, outputSize, omega0, name)
-            layer.Name = name;
-            layer.Description = "SIREN Layer with Omega0 = " + omega0;
-            layer.Omega0 = omega0;
+        function layer = sirenLayer(args)
+            arguments
+                args.Name        = "sirenLayer";
+                args.Description = "SIREN Layer";
+                args.InputSize
+                args.OutputSize
+                args.Omega0      = 30;
+            end
+            layer.Name   = args.Name;
+            layer.Omega0 = args.Omega0;
 
             % Weight and bias initialization
-            limit = sqrt(6 / inputSize) / omega0;
-            weights = (rand(outputSize, inputSize) * 2 - 1) * limit;
+            limit         = sqrt(6 / args.InputSize) / args.Omega0;
+            weights       = (rand(args.OutputSize, args.InputSize) * 2 - 1) * limit;
             layer.Weights = dlarray(weights);
-            layer.Bias = dlarray(zeros(outputSize, 1));
-            layer.Dummy = dlarray(zeros(outputSize, 1));
+            layer.Bias    = dlarray(zeros(args.OutputSize, 1));
+            layer.Dummy   = dlarray(zeros(args.OutputSize, 1));
         end
         
         function Z = predict(layer, X)

@@ -13,19 +13,26 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
     end
     
     methods
-        function layer = factorizedLayer(inputSize, outputSize, rank, name)
-            layer.Name = name;
-            layer.InputSize = inputSize;
-            layer.OutputSize = outputSize;
-            layer.Rank = rank;
+        function layer = factorizedLayer(args)
+            arguments
+                args.Name        = "factorizedLayer";
+                args.Description = "Factorized layer for fewer parameters";
+                args.InputSize
+                args.OutputSize
+                args.Rank
+            end
+            layer.Name       = args.Name;
+            layer.InputSize  = args.InputSize;
+            layer.OutputSize = args.OutputSize;
+            layer.Rank       = args.Rank;
 
             % Initialized weights
-            limit1 = sqrt(6 / (inputSize + rank));
-            limit2 = sqrt(6 / (rank + outputSize));
-            layer.W1 = dlarray((rand(rank, inputSize) * 2 - 1) * limit1);
-            layer.W2 = dlarray((rand(outputSize, rank) * 2 - 1) * limit2);
-            layer.Bias = dlarray(zeros(outputSize, 1));
-            layer.Dummy = dlarray(zeros(rank, 1));
+            limit1      = sqrt(6 / (args.InputSize + args.Rank));
+            limit2      = sqrt(6 / (args.Rank + args.OutputSize));
+            layer.W1    = dlarray((rand(args.Rank, args.InputSize) * 2 - 1) * limit1);
+            layer.W2    = dlarray((rand(args.OutputSize, args.Rank) * 2 - 1) * limit2);
+            layer.Bias  = dlarray(zeros(args.OutputSize, 1));
+            layer.Dummy = dlarray(zeros(args.Rank, 1));
         end
         
         function Z = predict(layer, X)
