@@ -22,7 +22,7 @@ classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.F
             layer.Omega0 = args.Omega0;
 
             % Weight and bias initialization
-            limit         = sqrt(6 / args.InputSize) / args.Omega0;
+            limit         = sqrt(6 / (args.InputSize * args.Omega0 ^ 2));
             weights       = (rand(args.OutputSize, args.InputSize) * 2 - 1) * limit;
             layer.Weights = dlarray(weights);
             layer.Bias    = dlarray(zeros(args.OutputSize, 1));
