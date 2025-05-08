@@ -44,7 +44,7 @@ classdef factorizedSirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nn
         
         function Z = predict(layer, X)
             W = layer.W1 * layer.W2;
-            Z = sin(layer.Omega0 *fullyconnect(X, W, layer.Bias));
+            Z = sin(layer.Omega0 * fullyconnect(X, W, layer.Bias));
         end
     end
 end
