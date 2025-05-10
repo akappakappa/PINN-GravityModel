@@ -1,4 +1,4 @@
-function net = MixedSirenWeights(mu, e)
+function net = MixedWeightsSiren(mu, e)
     net = dlnetwork();
 
     % Define the feature engineering layers
