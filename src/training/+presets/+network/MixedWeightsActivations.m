@@ -12,13 +12,14 @@ function net = MixedWeightsActivations(mu, e)
     % Define the NN layers: 3 * (FullyConnected + GELU) + 3 * (Factorized + SIREN) + Factorized
     layersNN = [];
     depthNN  = 7;
+    % ------------ | Prev - | (either) Layer / (or) Layer + Activation ------------------------------------------------- | (..either) Activation --------------- |
     for i = 1:3
-        layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
+        layersNN = [layersNN,                fullyConnectedLayer(32           , "Name", sprintf("fc%d", i))              , geluLayer("Name", sprintf("act%d", i))];
     end
     for i = 4:depthNN - 1
-        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))];
+        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))                                                      ];
     end
-    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN))];
+    layersNN     = [layersNN,      presets.layer.factorizedLayer(32, 1, 1     , "Name", sprintf("factorized%d", depthNN))                                        ];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

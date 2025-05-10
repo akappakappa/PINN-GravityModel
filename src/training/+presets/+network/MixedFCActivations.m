@@ -12,13 +12,14 @@ function net = MixedFCActivations(mu, e)
     % Define the NN layers: 3 * (FullyConnected + GELU) + 3 * (FullyConnected + SIREN) + FullyConnected
     layersNN = [];
     depthNN  = 7;
+    % ------------ | Prev - | (either) Layer / (or) Layer + Activation --------------------------- | (..either) Activation --------------- |
     for i = 1:3
-        layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
+        layersNN = [layersNN,      fullyConnectedLayer(32       , "Name", sprintf("fc%d", i))      , geluLayer("Name", sprintf("act%d", i))];
     end
     for i = 4:depthNN - 1
-        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))];
+        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))                                           ];
     end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN))];
+    layersNN     = [layersNN,      fullyConnectedLayer(1        , "Name", sprintf("fc%d", depthNN))                                        ];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

@@ -12,14 +12,15 @@ function net = MixedWeightsSiren(mu, e)
     % Define the NN layers: 3 * (FullyConnected + SIREN) + 3 * (Factorized + SIREN) + Factorized
     layersNN = [];
     depthNN  = 7;
-    layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 1, "Name", "siren1")];
+    % ------------ | Prev - | (either) Layer / (or) Layer + Activation ------------------------------------------------- |
+    layersNN     = [layersNN,           presets.layer.sirenLayer(5, 32, 1     , "Name", "siren1")                        ];
     for i = 2:3
-        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))];
+        layersNN = [layersNN,           presets.layer.sirenLayer(32, 32, 1    , "Name", sprintf("siren%d", i))           ];
     end
     for i = 4:depthNN - 1
-        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))];
+        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))              ];
     end
-    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN))];
+    layersNN     = [layersNN,      presets.layer.factorizedLayer(32, 1, 1     , "Name", sprintf("factorized%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

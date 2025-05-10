@@ -12,11 +12,12 @@ function net = Factorized_Gelu(mu, e)
     % Define the NN layers: 6 * (Factorized + GELU) + Factorized
     layersNN = [];
     depthNN  = 7;
-    layersNN = [layersNN, presets.layer.factorizedLayer(5, 32, 5, "Name", "factorized1"), geluLayer("Name", "gelu1")];
+    % ------------ | Prev - | (either) Layer / (or) Layer + Activation ----------------------------------------- | (..either) Activation --------------- |
+    layersNN     = [layersNN, presets.layer.factorizedLayer(5, 32, 5  , "Name", "factorized1")                   , geluLayer("Name", "gelu1")            ];
     for i = 2:depthNN - 1
-        layersNN = [layersNN, presets.layer.factorizedLayer(32, 32, 12, "Name", sprintf("factorized%d", i)), geluLayer("Name", sprintf("act%d", i))];
+        layersNN = [layersNN, presets.layer.factorizedLayer(32, 32, 12, "Name", sprintf("factorized%d", i))      , geluLayer("Name", sprintf("act%d", i))];
     end
-    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN))];
+    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1  , "Name", sprintf("factorized%d", depthNN))                                        ];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

@@ -12,11 +12,12 @@ function net = FullyConnected_Siren(mu, e)
     % Define the NN layers: 6 * (FullyConnected + SIREN) + FullyConnected
     layersNN = [];
     depthNN  = 7;
-    layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 1, "Name", "siren1")];
+    % ------------ | Prev - | (either) Layer / (or) Layer + Activation --------------------------- |
+    layersNN     = [layersNN, presets.layer.sirenLayer(5, 32, 1 , "Name", "siren1")                ];
     for i = 2:depthNN - 1
-        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))];
+        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))   ];
     end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN))];
+    layersNN     = [layersNN,      fullyConnectedLayer(1        , "Name", sprintf("fc%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

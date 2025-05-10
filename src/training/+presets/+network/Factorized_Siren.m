@@ -12,11 +12,12 @@ function net = Factorized_Siren(mu, e)
     % Define the NN layers: 6 * (Factorized + SIREN) + Factorized
     layersNN = [];
     depthNN  = 7;
-    layersNN = [layersNN, presets.layer.factorizedSirenLayer(5, 32, 5, 1, "Name", "fs1")];
+    % ------------ | Prev - | (either) Layer / (or) Layer + Activation ------------------------------------------------- |
+    layersNN     = [layersNN, presets.layer.factorizedSirenLayer(5, 32, 5, 1  , "Name", "fs1")                           ];
     for i = 2:depthNN - 1
-        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))];
+        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))              ];
     end
-    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN))];
+    layersNN     = [layersNN,      presets.layer.factorizedLayer(32, 1, 1     , "Name", sprintf("factorized%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
