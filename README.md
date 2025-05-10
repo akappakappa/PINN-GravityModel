@@ -7,9 +7,13 @@ MATLAB R2024b is used for the implementation of the project.
 - [x] Data extraction
 - [x] Preprocessing
 - [x] Training
-- [ ] Metrics
+- [x] Metrics
 - [x] Going fast on GPU!
-- [ ] Expand project ...
+- [ ] Expand project w/ modifications to Network topology and Loss function
+    - [x] Implement custom SIREN layer (Activation function)
+    - [x] Implement custom Factorized layer (NN layer)
+    - [x] Implement custom Radius-based weight (Loss function)
+    - [ ] Test all newly implemented features and their combinations
 
 ## Code preview
 The code entry-point is [main](./src/main.m), which simply conditionally launches the following routines:
@@ -27,11 +31,12 @@ The code entry-point is [main](./src/main.m), which simply conditionally launche
     - [Loss function](./src/training/+presets/+loss/PINN_GM_III.m) that combines RMS and MPE losses. \
     $L_{RMS+MPE}(\theta)=\frac{1}{N}\sum_{i=0}^N\left(\sqrt{\left|-\nabla\hat{U}(x_i|\theta)-a_i\right|^2}+\frac{\left|-\nabla\hat{U}(x_i|\theta)-a_i\right|}{|a_i|}\right)$ \
     where $\nabla\hat{U}(x_i|\theta)$ is the differentaited network potential and $a_i$ is the true acceleration.
-4. [Test Metrics](./src/test/runTest.m) **TODO** implements the following metrics:
-    - [x] Planes
-    - [x] Generalized
-    - [x] Surface
-    - [ ] Trajectory NEAR (unable to generate it, missing files from [GravNN](https://github.com/MartinAstro/GravNN))
+4. [Test Metrics](./src/test/runTest.m) implements the following metrics:
+    - [Planes](./src/test/+presets/planes.m) averages percent error along the three Cartesian planes XY, XZ, YZ between [-5R, 5R], evaluated on a 200*200 grid along each plane as: \
+    $P=\frac{1}{N}\sum_{i=1}^N\frac{||a_{true}-a_{PINN}||}{a_{true}}\cdot{}100$
+    - [Generalized](./src/test/+presets/generalization.m) evaluates new samples, 500 per unit of radius, and evaluated separately for radiuses 0:1R, 1:10R, 10:100R using the formula from the training loss function.
+    - [Surface](./src/test/+presets/surface.m) evaluates ~200'000 new points on the surface of the asteroid using the formula from the training loss function.
+    - **BROKEN** Trajectory NEAR (unable to generate it due to [missing file](https://github.com/MartinAstro/GravNN/issues/7#issue-2993413000))
  
 ## Authors
 Computer Engineering @ Unversity Of Padua, Italy:
