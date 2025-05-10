@@ -1,4 +1,5 @@
 # Put this script file in path/to/GravNN/Scripts/Data/custom.py
+# Simply run this script to generate the data, change flags to customize what data to generate
 
 BASE_DIR = "" # path/to/GravNN
 import time
@@ -16,12 +17,12 @@ from GravNN.Trajectories.utils              import (
 
 
 def generate_random_data(planet, obj_file):
-    GENERATE_TRAIN_SURFACE       = False
-    GENERATE_TRAIN_RANDOM        = False
-    GENERATE_METRICS_PLANES      = False
+    GENERATE_TRAIN_SURFACE       = True
+    GENERATE_TRAIN_RANDOM        = True
+    GENERATE_METRICS_PLANES      = True
     GENERATE_METRICS_GENERALIZED = True
-    GENERATE_METRICS_SURFACE     = False
-    GENERATE_METRICS_NEAR        = False
+    GENERATE_METRICS_SURFACE     = True
+    GENERATE_METRICS_NEAR        = False # Missing file
 
     # TRAINING - SURFACE (200'700)
     if GENERATE_TRAIN_SURFACE:
