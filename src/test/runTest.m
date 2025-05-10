@@ -12,9 +12,9 @@ GeneralizationPot_1_10   = dlarray(readmatrix("src/preprocessing/datastore/metri
 GeneralizationTrj_10_100 = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationTrj_10_100.csv"), 'BC');
 GeneralizationAcc_10_100 = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationAcc_10_100.csv"), 'BC');
 GeneralizationPot_10_100 = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationPot_10_100.csv"), 'BC');
-GeneralizationTrj        = cat(1, GeneralizationTrj_0_1, GeneralizationTrj_1_10, GeneralizationTrj_10_100);
-GeneralizationAcc        = cat(1, GeneralizationAcc_0_1, GeneralizationAcc_1_10, GeneralizationAcc_10_100);
-GeneralizationPot        = cat(1, GeneralizationPot_0_1, GeneralizationPot_1_10, GeneralizationPot_10_100);
+GeneralizationTrj        = cat(2, GeneralizationTrj_0_1, GeneralizationTrj_1_10, GeneralizationTrj_10_100);
+GeneralizationAcc        = cat(2, GeneralizationAcc_0_1, GeneralizationAcc_1_10, GeneralizationAcc_10_100);
+GeneralizationPot        = cat(2, GeneralizationPot_0_1, GeneralizationPot_1_10, GeneralizationPot_10_100);
 
 SurfaceTrj               = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfaceTrj.csv"              ), 'BC');
 SurfaceAcc               = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfaceAcc.csv"              ), 'BC');
