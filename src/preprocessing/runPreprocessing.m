@@ -35,15 +35,21 @@ writematrix(preprocessed.validationPOT, "datastore/validation/Pot.csv");
 writestruct(preprocessed.params, "datastore/params.json");
 
 % Save preprocessed metrics data
-writematrix(preprocessed.mPlanesTRJ        , "datastore/metrics/PlanesTrj.csv");
-writematrix(preprocessed.mPlanesACC        , "datastore/metrics/PlanesAcc.csv");
-writematrix(preprocessed.mPlanesPOT        , "datastore/metrics/PlanesPot.csv");
-writematrix(preprocessed.mGeneralizationTRJ, "datastore/metrics/GeneralizationTrj.csv");
-writematrix(preprocessed.mGeneralizationACC, "datastore/metrics/GeneralizationAcc.csv");
-writematrix(preprocessed.mGeneralizationPOT, "datastore/metrics/GeneralizationPot.csv");
-writematrix(preprocessed.mSurfaceTRJ       , "datastore/metrics/SurfaceTrj.csv");
-writematrix(preprocessed.mSurfaceACC       , "datastore/metrics/SurfaceAcc.csv");
-writematrix(preprocessed.mSurfacePOT       , "datastore/metrics/SurfacePot.csv");
+writematrix(preprocessed.mPlanesTRJ               , "datastore/metrics/PlanesTrj.csv"               );
+writematrix(preprocessed.mPlanesACC               , "datastore/metrics/PlanesAcc.csv"               );
+writematrix(preprocessed.mPlanesPOT               , "datastore/metrics/PlanesPot.csv"               );
+writematrix(preprocessed.mGeneralizationTRJ_0_1   , "datastore/metrics/GeneralizationTrj_0_1.csv"   );
+writematrix(preprocessed.mGeneralizationACC_0_1   , "datastore/metrics/GeneralizationAcc_0_1.csv"   );
+writematrix(preprocessed.mGeneralizationPOT_0_1   , "datastore/metrics/GeneralizationPot_0_1.csv"   );
+writematrix(preprocessed.mGeneralizationTRJ_1_10  , "datastore/metrics/GeneralizationTrj_1_10.csv"  );
+writematrix(preprocessed.mGeneralizationACC_1_10  , "datastore/metrics/GeneralizationAcc_1_10.csv"  );
+writematrix(preprocessed.mGeneralizationPOT_1_10  , "datastore/metrics/GeneralizationPot_1_10.csv"  );
+writematrix(preprocessed.mGeneralizationTRJ_10_100, "datastore/metrics/GeneralizationTrj_10_100.csv");
+writematrix(preprocessed.mGeneralizationACC_10_100, "datastore/metrics/GeneralizationAcc_10_100.csv");
+writematrix(preprocessed.mGeneralizationPOT_10_100, "datastore/metrics/GeneralizationPot_10_100.csv");
+writematrix(preprocessed.mSurfaceTRJ              , "datastore/metrics/SurfaceTrj.csv"              );
+writematrix(preprocessed.mSurfaceACC              , "datastore/metrics/SurfaceAcc.csv"              );
+writematrix(preprocessed.mSurfacePOT              , "datastore/metrics/SurfacePot.csv"              );
 
 % Add folder to path recursively
 addpath(genpath("datastore"));

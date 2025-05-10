@@ -10,6 +10,15 @@ function path = goDeep(path, match)
     path      = path + oneDeeper + "/";
 end
 
+function matches = listMatchesWithinBounds(path, match, bound)
+    list = [];
+    for i = bound(1):bound(2) - 1
+        list = [list, match + "_RadBounds[" + 16000 * i + ".0"];
+    end
+    matches   = dir(path);
+    matches   = {matches(contains({matches.name}, list)).name};
+end
+
 % Test Surface data
 folder      = "SurfaceDist/";
 match       = ["eros", "HeterogeneousPoly"];
@@ -39,24 +48,40 @@ mPlanesPOT = loadData(folder + "potential.data");
 
 % Metrics Random data
 folder                    = "RandomDist/";
-match_0_1                 = ["N_500_RadBounds[0.0, 16000.0]"       , "HeterogeneousPoly"];
-match_1_10                = ["N_500_RadBounds[16000.0, 160000.0]"  , "HeterogeneousPoly"];
-match_10_100              = ["N_500_RadBounds[160000.0, 1600000.0]", "HeterogeneousPoly"];
-folder_0_1                = goDeep(baseDir + folder, match_0_1(1));
-folder_1_10               = goDeep(baseDir + folder, match_1_10(1));
-folder_10_100             = goDeep(baseDir + folder, match_10_100(1));
-mGeneralizationTRJ_0_1    = loadData(folder_0_1    + "trajectory.data");
-mGeneralizationTRJ_1_10   = loadData(folder_1_10   + "trajectory.data");
-mGeneralizationTRJ_10_100 = loadData(folder_10_100 + "trajectory.data");
-folder_0_1                = goDeep(folder_0_1   , match_0_1(2));
-folder_1_10               = goDeep(folder_1_10  , match_1_10(2));
-folder_10_100             = goDeep(folder_10_100, match_10_100(2));
-mGeneralizationACC_0_1    = loadData(folder_0_1    + "acceleration.data");
-mGeneralizationACC_1_10   = loadData(folder_1_10   + "acceleration.data");
-mGeneralizationACC_10_100 = loadData(folder_10_100 + "acceleration.data");
-mGeneralizationPOT_0_1    = loadData(folder_0_1    + "potential.data");
-mGeneralizationPOT_1_10   = loadData(folder_1_10   + "potential.data");
-mGeneralizationPOT_10_100 = loadData(folder_10_100 + "potential.data");
+match                     = ["N_500", "HeterogeneousPoly"];
+bounds                    = {[0, 1], [1, 10], [10, 100]};
+for bound = bounds
+    % List all folders containing data within bounds
+    matches = listMatchesWithinBounds(baseDir + folder, match(1), bound{1});
+
+    % Aggregate data within such bounds
+    [tempTRJ, tempACC, tempPOT] = deal([]);
+    for i = 1:length(matches)
+        tempFolder = goDeep(baseDir + folder, matches(i));
+        tempTRJ    = [tempTRJ; loadData(tempFolder + "trajectory.data")];
+        tempFolder = goDeep(tempFolder, match(2));
+        tempACC    = [tempACC; loadData(tempFolder + "acceleration.data")];
+        tempPOT    = [tempPOT, loadData(tempFolder + "potential.data")];
+    end
+
+    % Save data
+    switch bound{1}(1)
+        case 0
+            mGeneralizationTRJ_0_1 = tempTRJ;
+            mGeneralizationACC_0_1 = tempACC;
+            mGeneralizationPOT_0_1 = tempPOT;
+        case 1
+            mGeneralizationTRJ_1_10 = tempTRJ;
+            mGeneralizationACC_1_10 = tempACC;
+            mGeneralizationPOT_1_10 = tempPOT;
+        case 10
+            mGeneralizationTRJ_10_100 = tempTRJ;
+            mGeneralizationACC_10_100 = tempACC;
+            mGeneralizationPOT_10_100 = tempPOT;
+        otherwise
+            error("Invalid bounds");
+    end
+end
 
 % Metrics Surface data
 folder      = "SurfaceDHGridDist/";
@@ -76,17 +101,14 @@ mGeneralizationPOT_1_10   = mGeneralizationPOT_1_10.';
 mGeneralizationPOT_10_100 = mGeneralizationPOT_10_100.';
 mSurfacePOT               = mSurfacePOT.';
 
-% Combine Generalization data
-mGeneralizationTRJ = cat(1, mGeneralizationTRJ_0_1, mGeneralizationTRJ_1_10, mGeneralizationTRJ_10_100);
-mGeneralizationACC = cat(1, mGeneralizationACC_0_1, mGeneralizationACC_1_10, mGeneralizationACC_10_100);
-mGeneralizationPOT = cat(1, mGeneralizationPOT_0_1, mGeneralizationPOT_1_10, mGeneralizationPOT_10_100);
-
 % Saving
 save("dataset.mat", ...
-    "tSurfaceTRJ"       , "tSurfaceACC"       , "tSurfacePOT"       , ...
-    "tRandomTRJ"        , "tRandomACC"        , "tRandomPOT"        , ...
-    "mPlanesTRJ"        , "mPlanesACC"        , "mPlanesPOT"        , ...
-    "mGeneralizationTRJ", "mGeneralizationACC", "mGeneralizationPOT", ...
-    "mSurfaceTRJ"       , "mSurfaceACC"       , "mSurfacePOT"         ...
+    "tSurfaceTRJ"              , "tSurfaceACC"              , "tSurfacePOT"              , ...
+    "tRandomTRJ"               , "tRandomACC"               , "tRandomPOT"               , ...
+    "mPlanesTRJ"               , "mPlanesACC"               , "mPlanesPOT"               , ...
+    "mGeneralizationTRJ_0_1"   , "mGeneralizationACC_0_1"   , "mGeneralizationPOT_0_1"   , ...
+    "mGeneralizationTRJ_1_10"  , "mGeneralizationACC_1_10"  , "mGeneralizationPOT_1_10"  , ...
+    "mGeneralizationTRJ_10_100", "mGeneralizationACC_10_100", "mGeneralizationPOT_10_100", ...
+    "mSurfaceTRJ"              , "mSurfaceACC"              , "mSurfacePOT"                ...
 );
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING

@@ -42,9 +42,15 @@ function data = PINN_GM_III(data)
         data.mPlanesACC = data.mPlanesACC ./ sACC;
         data.mPlanesPOT = data.mPlanesPOT ./ sPOT;
 
-        data.mGeneralizationTRJ = data.mGeneralizationTRJ ./ sTRJ;
-        data.mGeneralizationACC = data.mGeneralizationACC ./ sACC;
-        data.mGeneralizationPOT = data.mGeneralizationPOT ./ sPOT;
+        data.mGeneralizationTRJ_0_1    = data.mGeneralizationTRJ_0_1    ./ sTRJ;
+        data.mGeneralizationACC_0_1    = data.mGeneralizationACC_0_1    ./ sACC;
+        data.mGeneralizationPOT_0_1    = data.mGeneralizationPOT_0_1    ./ sPOT;
+        data.mGeneralizationTRJ_1_10   = data.mGeneralizationTRJ_1_10   ./ sTRJ;
+        data.mGeneralizationACC_1_10   = data.mGeneralizationACC_1_10   ./ sACC;
+        data.mGeneralizationPOT_1_10   = data.mGeneralizationPOT_1_10   ./ sPOT;
+        data.mGeneralizationTRJ_10_100 = data.mGeneralizationTRJ_10_100 ./ sTRJ;
+        data.mGeneralizationACC_10_100 = data.mGeneralizationACC_10_100 ./ sACC;
+        data.mGeneralizationPOT_10_100 = data.mGeneralizationPOT_10_100 ./ sPOT;
 
         data.mSurfaceTRJ = data.mSurfaceTRJ ./ sTRJ;
         data.mSurfaceACC = data.mSurfaceACC ./ sACC;
