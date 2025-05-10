@@ -118,7 +118,7 @@ function data = tLoadDatastore(path)
 end
 
 function [network, loss, options] = tLoadPresets(data, useGPU)    
-    network = initialize(presets.network.Factorized_Gelu(data.params.mu, data.params.e));
+    network = initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e));
     loss    = dlaccelerate(@presets.loss.PINN_GM_III);
     options = presets.options.PINN_GM_III(data.params.split(1));
     if useGPU

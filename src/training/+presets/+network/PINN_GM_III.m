@@ -50,4 +50,8 @@ function net = PINN_GM_III(mu, e)
     net = connectLayers(net, "fuseModelsLayer/Potential"   , "applyBoundaryConditionsLayer/PotFused");
     net = connectLayers(net, "analyticModelLayer/Potential", "applyBoundaryConditionsLayer/PotLF"   );
     net = connectLayers(net, "cart2sphLayer/Radius"        , "applyBoundaryConditionsLayer/Radius"  );
+
+    % Radius Identity Layer: output radius for loss component
+    net = addLayers(net, identityLayer("Name", "RadiusIdentity"));
+    net = connectLayers(net, "cart2sphLayer/Radius", "RadiusIdentity");
 end
