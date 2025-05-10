@@ -11,7 +11,7 @@ function path = goDeep(path, match)
 end
 
 % Test Surface data
-folder      = "SurfaceDHGridDist/";
+folder      = "SurfaceDist/";
 match       = ["eros", "HeterogeneousPoly"];
 folder      = goDeep(baseDir + folder, match(1));
 tSurfaceTRJ = loadData(folder + "trajectory.data");
@@ -59,7 +59,7 @@ mGeneralizationPOT_1_10   = loadData(folder_1_10   + "potential.data");
 mGeneralizationPOT_10_100 = loadData(folder_10_100 + "potential.data");
 
 % Metrics Surface data
-folder      = "SurfaceDist/";
+folder      = "SurfaceDHGridDist/";
 match       = ["eros", "HeterogeneousPoly"];
 folder      = goDeep(baseDir + folder, match(1));
 mSurfaceTRJ = loadData(folder + "trajectory.data");

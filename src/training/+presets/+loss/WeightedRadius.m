@@ -1,4 +1,4 @@
-function [loss, gradients, state] = PINN_GM_III_M(net, Trj, Acc, ~, trainingMode)
+function [loss, gradients, state] = WeightedRadius(net, Trj, Acc, ~, trainingMode)
     % Forward
     [PotPred, Radius, state] = forward(net, Trj);
 

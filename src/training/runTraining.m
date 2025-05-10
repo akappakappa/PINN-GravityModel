@@ -1,11 +1,11 @@
-executionEnvironment  = "auto";
-headless              = false;
-recoverFromCheckpoint = false;
+executionEnvironment  = "auto";   % Leave as "auto" for GPU training if found, or set to "gpu" or "cpu"
+headless              = false;    % !!! SET TO TRUE FOR HEADLESS TRAINING IN NON-GUI ENVIRONMENT !!!
+recoverFromCheckpoint = false;    % Only set to true if you want to recover from a checkpoint on stopped training
 useGPU                = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
 
 % Preparations - Data
 data                      = tLoadDatastore("src/preprocessing/datastore");
-[net, modelLoss, options] = tLoadPresets(data, useGPU);
+[net, modelLoss, options] = tLoadPresets(data, useGPU);   % Modify body of this function below to change presets (network, loss, options)
 [tMBQ, vMBQ]              = tSetupMinibatchQueues(data, options, useGPU);
 
 % Preparations - Loop
@@ -15,7 +15,7 @@ averageGrad   = [];
 averageSqGrad = [];
 bestNet       = net;
 
-% Recovering from checkpoint
+% IF recovering from checkpoint on stopped training
 if recoverFromCheckpoint
     checkpoint    = load("checkpoint");
     net           = checkpoint.bestNet;
@@ -118,7 +118,7 @@ function data = tLoadDatastore(path)
 end
 
 function [network, loss, options] = tLoadPresets(data, useGPU)    
-    network = initialize(presets.network.PINN_GM_III_F(data.params.mu, data.params.e));
+    network = initialize(presets.network.Factorized_Gelu(data.params.mu, data.params.e));
     loss    = dlaccelerate(@presets.loss.PINN_GM_III);
     options = presets.options.PINN_GM_III(data.params.split(1));
     if useGPU

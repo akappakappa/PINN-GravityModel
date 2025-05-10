@@ -1,4 +1,4 @@
-function net = PINN_GM_III(mu, e)
+function net = MixedWeightsActivations(mu, e)
     net = dlnetwork();
 
     % Define the feature engineering layers
@@ -9,13 +9,16 @@ function net = PINN_GM_III(mu, e)
         )
     ];
 
-    % Define the NN layers: 6 * (FullyConnected + GELU) + FullyConnected
+    % Define the NN layers: 3 * (FullyConnected + GELU) + 3 * (Factorized + SIREN) + Factorized
     layersNN = [];
     depthNN  = 7;
-    for i = 1:depthNN - 1
+    for i = 1:3
         layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
     end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN))];
+    for i = 4:depthNN - 1
+        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))];
+    end
+    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
@@ -35,7 +38,7 @@ function net = PINN_GM_III(mu, e)
 
     % Connect NN layers
     net = connectLayers(net, "cart2sphLayer/Spherical", "fc1/in"                         );
-    net = connectLayers(net, "fc7"                    , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "factorized7"            , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius"   , "scaleNNPotentialLayer/Radius"   );
 
     % Connect Low-Fidelity Analytic Model layers
@@ -50,4 +53,8 @@ function net = PINN_GM_III(mu, e)
     net = connectLayers(net, "fuseModelsLayer/Potential"   , "applyBoundaryConditionsLayer/PotFused");
     net = connectLayers(net, "analyticModelLayer/Potential", "applyBoundaryConditionsLayer/PotLF"   );
     net = connectLayers(net, "cart2sphLayer/Radius"        , "applyBoundaryConditionsLayer/Radius"  );
+
+    % Radius Identity Layer: output radius for loss component
+    net = addLayers(net, identityLayer("Name", "RadiusIdentity"));
+    net = connectLayers(net, "cart2sphLayer/Radius", "RadiusIdentity");
 end

@@ -1,4 +1,4 @@
-function net = PINN_GM_III_S(mu, e)
+function net = MixedSirenWeights(mu, e)
     net = dlnetwork();
 
     % Define the feature engineering layers
@@ -9,14 +9,17 @@ function net = PINN_GM_III_S(mu, e)
         )
     ];
 
-    % Define the NN layers
+    % Define the NN layers: 3 * (FullyConnected + SIREN) + 3 * (Factorized + SIREN) + Factorized
     layersNN = [];
-    depthNN  = 6;
+    depthNN  = 7;
     layersNN = [layersNN, presets.layer.sirenLayer(5, 32, 1, "Name", "siren1")];
-    for i = 1:depthNN - 1
-        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i + 1))];
+    for i = 2:3
+        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))];
     end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN + 1))];
+    for i = 4:depthNN - 1
+        layersNN = [layersNN, presets.layer.factorizedSirenLayer(32, 32, 12, 1, "Name", sprintf("fs%d", i))];
+    end
+    layersNN     = [layersNN, presets.layer.factorizedLayer(32, 1, 1, "Name", sprintf("factorized%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
@@ -35,8 +38,8 @@ function net = PINN_GM_III_S(mu, e)
     ));
 
     % Connect NN layers
-    net = connectLayers(net, "cart2sphLayer/Spherical", "siren1/in"                         );
-    net = connectLayers(net, "fc7"                    , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "cart2sphLayer/Spherical", "siren1/in"                      );
+    net = connectLayers(net, "factorized7"            , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius"   , "scaleNNPotentialLayer/Radius"   );
 
     % Connect Low-Fidelity Analytic Model layers
@@ -52,7 +55,7 @@ function net = PINN_GM_III_S(mu, e)
     net = connectLayers(net, "analyticModelLayer/Potential", "applyBoundaryConditionsLayer/PotLF"   );
     net = connectLayers(net, "cart2sphLayer/Radius"        , "applyBoundaryConditionsLayer/Radius"  );
 
-    % Radius Identity Layer 
+    % Radius Identity Layer: output radius for loss component
     net = addLayers(net, identityLayer("Name", "RadiusIdentity"));
     net = connectLayers(net, "cart2sphLayer/Radius", "RadiusIdentity");
 end

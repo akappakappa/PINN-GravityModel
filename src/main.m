@@ -1,4 +1,5 @@
-% PINN-GravityModel
+% Physics-Informed Neural Network for Gravitational Potential estimation on 433 Eros
+%
 % File: main.m
 %     entrypoint for Data and Training
 % Authors:
@@ -7,8 +8,10 @@
 
 close all; clear; clc;
 addpath(genpath("src"));
-DO_DATA_EXTRACTION = false;
-DO_PREPROCESSING   = false;
+
+% Flags
+DO_DATA_EXTRACTION = true;
+DO_PREPROCESSING   = true;
 DO_TRAINING        = true;
 DO_TESTING         = true;
 
