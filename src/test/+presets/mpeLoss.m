@@ -1,4 +1,4 @@
-function loss = generalization(net, Trj, Acc, ~)
+function loss = mpeLoss(net, Trj, Acc, ~)
     % Forward
     PotPred = forward(net, Trj);
 

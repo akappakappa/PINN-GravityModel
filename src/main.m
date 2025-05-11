@@ -12,7 +12,7 @@ addpath(genpath("src"));
 % Flags
 DO_DATA_EXTRACTION = false;
 DO_PREPROCESSING   = true;
-DO_TRAINING        = true;
+DO_TRAINING        = false;
 DO_TESTING         = true;
 
 % Dataset
