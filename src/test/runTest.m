@@ -60,7 +60,7 @@ fprintf("Surface metric                  : %f\n", meSurfaceMetric              )
 
 
 function [Trj, Acc, Pot] = removeInside(Trj, Acc, Pot)
-    if   ~isfile("src/test/shape.mat")
+    if   isfile("src/test/shape.mat")
          shape = readObj("src/data/Model/eros_shape_200700.obj");
          max_extent = max(max(abs(shape.v)));  
          shape.v = shape.v / max_extent;
