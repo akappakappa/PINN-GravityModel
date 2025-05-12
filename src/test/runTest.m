@@ -58,20 +58,21 @@ fprintf("Generalization metric [0R:100R] : %f\n", meGeneralizationMetric       )
 fprintf("Surface metric                  : %f\n", meSurfaceMetric              );
 
 
-
 function [Trj, Acc, Pot] = removeInside(Trj, Acc, Pot)
-    if   isfile("src/test/shape.mat")
-         shape = readObj("src/data/Model/eros_shape_200700.obj");
-         max_extent = max(max(abs(shape.v)));  
-         shape.v = shape.v / max_extent;
-         save("shape", "shape");
-    else load("src/test/shape.mat");
+    objPath = "src/data/Model/eros_shape_200700.obj";
+    matPath = "src/test/shape.mat";
+    if ~isfile(matPath)
+        shape      = readObj(objPath);
+        max_extent = max(max(abs(shape.v)));  
+        shape.v    = shape.v / max_extent;
+        save("shape", "shape");
+    else
+        load(matPath, "shape");
     end
-         trj = extractdata(Trj);
-         trj = trj';
-         inside = inpolyhedron(shape.f.v, shape.v, trj);
-         inside = inside';
-         Trj = Trj(:, ~inside);
-         Acc = Acc(:, ~inside);
-         Pot = Pot(:, ~inside);
+
+    trj    = extractdata(Trj)';
+    inside = inpolyhedron(shape.f.v, shape.v, trj)';
+    Trj    = Trj(:, ~inside);
+    Acc    = Acc(:, ~inside);
+    Pot    = Pot(:, ~inside);
 end
