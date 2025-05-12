@@ -1,24 +1,26 @@
-% Load data
-PlanesTrj                = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesTrj.csv"               ), 'BC');
-PlanesAcc                = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesAcc.csv"               ), 'BC');
-PlanesPot                = dlarray(readmatrix("src/preprocessing/datastore/metrics/PlanesPot.csv"               ), 'BC');
+metricsFolder = "src/preprocessing/datastore/metrics/";
 
-GeneralizationTrj_0_1    = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationTrj_0_1.csv"   ), 'BC');
-GeneralizationAcc_0_1    = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationAcc_0_1.csv"   ), 'BC');
-GeneralizationPot_0_1    = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationPot_0_1.csv"   ), 'BC');
-GeneralizationTrj_1_10   = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationTrj_1_10.csv"  ), 'BC');
-GeneralizationAcc_1_10   = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationAcc_1_10.csv"  ), 'BC');
-GeneralizationPot_1_10   = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationPot_1_10.csv"  ), 'BC');
-GeneralizationTrj_10_100 = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationTrj_10_100.csv"), 'BC');
-GeneralizationAcc_10_100 = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationAcc_10_100.csv"), 'BC');
-GeneralizationPot_10_100 = dlarray(readmatrix("src/preprocessing/datastore/metrics/GeneralizationPot_10_100.csv"), 'BC');
+% Load data
+PlanesTrj                = dlarray(readmatrix(metricsFolder + "PlanesTrj.csv"               ), 'BC');
+PlanesAcc                = dlarray(readmatrix(metricsFolder + "PlanesAcc.csv"               ), 'BC');
+PlanesPot                = dlarray(readmatrix(metricsFolder + "PlanesPot.csv"               ), 'BC');
+
+GeneralizationTrj_0_1    = dlarray(readmatrix(metricsFolder + "GeneralizationTrj_0_1.csv"   ), 'BC');
+GeneralizationAcc_0_1    = dlarray(readmatrix(metricsFolder + "GeneralizationAcc_0_1.csv"   ), 'BC');
+GeneralizationPot_0_1    = dlarray(readmatrix(metricsFolder + "GeneralizationPot_0_1.csv"   ), 'BC');
+GeneralizationTrj_1_10   = dlarray(readmatrix(metricsFolder + "GeneralizationTrj_1_10.csv"  ), 'BC');
+GeneralizationAcc_1_10   = dlarray(readmatrix(metricsFolder + "GeneralizationAcc_1_10.csv"  ), 'BC');
+GeneralizationPot_1_10   = dlarray(readmatrix(metricsFolder + "GeneralizationPot_1_10.csv"  ), 'BC');
+GeneralizationTrj_10_100 = dlarray(readmatrix(metricsFolder + "GeneralizationTrj_10_100.csv"), 'BC');
+GeneralizationAcc_10_100 = dlarray(readmatrix(metricsFolder + "GeneralizationAcc_10_100.csv"), 'BC');
+GeneralizationPot_10_100 = dlarray(readmatrix(metricsFolder + "GeneralizationPot_10_100.csv"), 'BC');
 GeneralizationTrj        = cat(2, GeneralizationTrj_0_1, GeneralizationTrj_1_10, GeneralizationTrj_10_100);
 GeneralizationAcc        = cat(2, GeneralizationAcc_0_1, GeneralizationAcc_1_10, GeneralizationAcc_10_100);
 GeneralizationPot        = cat(2, GeneralizationPot_0_1, GeneralizationPot_1_10, GeneralizationPot_10_100);
 
-SurfaceTrj               = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfaceTrj.csv"              ), 'BC');
-SurfaceAcc               = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfaceAcc.csv"              ), 'BC');
-SurfacePot               = dlarray(readmatrix("src/preprocessing/datastore/metrics/SurfacePot.csv"              ), 'BC');
+SurfaceTrj               = dlarray(readmatrix(metricsFolder + "SurfaceTrj.csv"              ), 'BC');
+SurfaceAcc               = dlarray(readmatrix(metricsFolder + "SurfaceAcc.csv"              ), 'BC');
+SurfacePot               = dlarray(readmatrix(metricsFolder + "SurfacePot.csv"              ), 'BC');
 
 % Load Network
 net = load("src/training/net.mat").net;
@@ -58,11 +60,62 @@ fprintf("Generalization metric [0R:100R] : %f\n", meGeneralizationMetric       )
 fprintf("Surface metric                  : %f\n", meSurfaceMetric              );
 
 
+function shape = readShapeModel(fname)
+    % Setup vertices and faces
+    shape              = struct();
+    [shape.v, shape.f] = deal([]);
+
+    % Parse the OBJ file
+    fid = fopen(fname, 'r');
+    while ~feof(fid)
+        line = fgetl(fid);
+        switch line(1)
+            case 'v'    % Vertex: v x y z
+                shape.v = [shape.v; sscanf(line(2:end), '%f')'];
+            case 'f'    % Face: f v1 v2 v3
+                shape.f = [shape.f; sscanf(line(2:end), '%d')'];
+            otherwise   % Ignore
+        end
+    end
+    fclose(fid);
+
+    % Check if the shape is valid
+    if isempty(shape.v) || isempty(shape.f)
+        error("[ERR] Invalid Shape Model");
+    end
+end
+
+
+function shape = normalizeShapeModel(shape)
+    shape.v = shape.v / max(max(abs(shape.v)));
+end
+
+
+function [Trj, Acc, Pot] = maskPointsOutsideShapeModel(shape, Trj, Acc, Pot)
+    objPath = "src/data/Model/eros_shape_200700.obj";
+    matPath = "src/test/shape.mat";
+    if ~isfile(matPath)
+        shape      = readShapeModel(objPath);
+        max_extent = max(max(abs(shape.v)));  
+        shape.v    = shape.v / max_extent;
+        save("shape", "shape");
+    else
+        load(matPath, "shape");
+    end
+
+    trj    = extractdata(Trj)';
+    inside = inpolyhedron(shape.f.v, shape.v, trj)';
+    Trj    = Trj(:, ~inside);
+    Acc    = Acc(:, ~inside);
+    Pot    = Pot(:, ~inside);
+end
+
+
 function [Trj, Acc, Pot] = removeInside(Trj, Acc, Pot)
     objPath = "src/data/Model/eros_shape_200700.obj";
     matPath = "src/test/shape.mat";
     if ~isfile(matPath)
-        shape      = readObj(objPath);
+        shape      = readShapeModel(objPath);
         max_extent = max(max(abs(shape.v)));  
         shape.v    = shape.v / max_extent;
         save("shape", "shape");
