@@ -23,6 +23,9 @@ SurfacePot               = dlarray(readmatrix("src/preprocessing/datastore/metri
 % Load Network
 net = load("src/training/net.mat").net;
 
+% Remove points inside the asteroid
+[PlanesTrj, PlanesAcc, PlanesPot] = removeInside(PlanesTrj, PlanesAcc, PlanesPot);
+
 % Compute metrics
 % ---------------------------------- | Preset function ----- | NN | Trajectory Data ------- | Acceleration Data ----- | Potential Data -------- |
 mpePlanesMetric                = dlfeval(@presets.mpeLoss, net, PlanesTrj               , PlanesAcc               , PlanesPot               );
@@ -53,3 +56,22 @@ fprintf("Generalization metric [1R:10R]  : %f\n", meGeneralizationMetric_1_10  )
 fprintf("Generalization metric [10R:100R]: %f\n", meGeneralizationMetric_10_100);
 fprintf("Generalization metric [0R:100R] : %f\n", meGeneralizationMetric       );
 fprintf("Surface metric                  : %f\n", meSurfaceMetric              );
+
+
+
+function [Trj, Acc, Pot] = removeInside(Trj, Acc, Pot)
+    if   ~isfile("src/test/shape.mat")
+         shape = readObj("src/data/Model/eros_shape_200700.obj");
+         max_extent = max(max(abs(shape.v)));  
+         shape.v = shape.v / max_extent;
+         save("shape", "shape");
+    else load("src/test/shape.mat");
+    end
+         trj = extractdata(Trj);
+         trj = trj';
+         inside = inpolyhedron(shape.f.v, shape.v, trj);
+         inside = inside';
+         Trj = Trj(:, ~inside);
+         Acc = Acc(:, ~inside);
+         Pot = Pot(:, ~inside);
+end
