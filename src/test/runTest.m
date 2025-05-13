@@ -25,22 +25,19 @@ SurfacePot               = dlarray(readmatrix(metricsFolder + "SurfacePot.csv"  
 % Load Network
 net = load("src/training/net.mat").net;
 
-% Remove points inside the asteroid
-[PlanesTrj, PlanesAcc, PlanesPot] = removeInside(PlanesTrj, PlanesAcc, PlanesPot);
-
 % Compute metrics
 % ---------------------------------- | Preset function ----- | NN | Trajectory Data ------- | Acceleration Data ----- | Potential Data -------- |
 mpePlanesMetric                = dlfeval(@presets.mpeLoss, net, PlanesTrj               , PlanesAcc               , PlanesPot               );
-mePlanesMetric                 = dlfeval(@presets.meLoss , net, PlanesTrj               , PlanesAcc               , PlanesPot               );
 mpeGeneralizationMetric_0_1    = dlfeval(@presets.mpeLoss, net, GeneralizationTrj_0_1   , GeneralizationAcc_0_1   , GeneralizationPot_0_1   );
-meGeneralizationMetric_0_1     = dlfeval(@presets.meLoss , net, GeneralizationTrj_0_1   , GeneralizationAcc_0_1   , GeneralizationPot_0_1   );
 mpeGeneralizationMetric_1_10   = dlfeval(@presets.mpeLoss, net, GeneralizationTrj_1_10  , GeneralizationAcc_1_10  , GeneralizationPot_1_10  );
-meGeneralizationMetric_1_10    = dlfeval(@presets.meLoss , net, GeneralizationTrj_1_10  , GeneralizationAcc_1_10  , GeneralizationPot_1_10  );
 mpeGeneralizationMetric_10_100 = dlfeval(@presets.mpeLoss, net, GeneralizationTrj_10_100, GeneralizationAcc_10_100, GeneralizationPot_10_100);
-meGeneralizationMetric_10_100  = dlfeval(@presets.meLoss , net, GeneralizationTrj_10_100, GeneralizationAcc_10_100, GeneralizationPot_10_100);
 mpeGeneralizationMetric        = dlfeval(@presets.mpeLoss, net, GeneralizationTrj       , GeneralizationAcc       , GeneralizationPot       );
-meGeneralizationMetric         = dlfeval(@presets.meLoss , net, GeneralizationTrj       , GeneralizationAcc       , GeneralizationPot       );
 mpeSurfaceMetric               = dlfeval(@presets.mpeLoss, net, SurfaceTrj              , SurfaceAcc              , SurfacePot              );
+mePlanesMetric                 = dlfeval(@presets.meLoss , net, PlanesTrj               , PlanesAcc               , PlanesPot               );
+meGeneralizationMetric_0_1     = dlfeval(@presets.meLoss , net, GeneralizationTrj_0_1   , GeneralizationAcc_0_1   , GeneralizationPot_0_1   );
+meGeneralizationMetric_1_10    = dlfeval(@presets.meLoss , net, GeneralizationTrj_1_10  , GeneralizationAcc_1_10  , GeneralizationPot_1_10  );
+meGeneralizationMetric_10_100  = dlfeval(@presets.meLoss , net, GeneralizationTrj_10_100, GeneralizationAcc_10_100, GeneralizationPot_10_100);
+meGeneralizationMetric         = dlfeval(@presets.meLoss , net, GeneralizationTrj       , GeneralizationAcc       , GeneralizationPot       );
 meSurfaceMetric                = dlfeval(@presets.meLoss , net, SurfaceTrj              , SurfaceAcc              , SurfacePot              );
 
 fprintf("\n### Mean Percent Error (MPE) ###\n");
@@ -58,74 +55,3 @@ fprintf("Generalization metric [1R:10R]  : %f\n", meGeneralizationMetric_1_10  )
 fprintf("Generalization metric [10R:100R]: %f\n", meGeneralizationMetric_10_100);
 fprintf("Generalization metric [0R:100R] : %f\n", meGeneralizationMetric       );
 fprintf("Surface metric                  : %f\n", meSurfaceMetric              );
-
-
-function shape = readShapeModel(fname)
-    % Setup vertices and faces
-    shape              = struct();
-    [shape.v, shape.f] = deal([]);
-
-    % Parse the OBJ file
-    fid = fopen(fname, 'r');
-    while ~feof(fid)
-        line = fgetl(fid);
-        switch line(1)
-            case 'v'    % Vertex: v x y z
-                shape.v = [shape.v; sscanf(line(2:end), '%f')'];
-            case 'f'    % Face: f v1 v2 v3
-                shape.f = [shape.f; sscanf(line(2:end), '%d')'];
-            otherwise   % Ignore
-        end
-    end
-    fclose(fid);
-
-    % Check if the shape is valid
-    if isempty(shape.v) || isempty(shape.f)
-        error("[ERR] Invalid Shape Model");
-    end
-end
-
-
-function shape = normalizeShapeModel(shape)
-    shape.v = shape.v / max(max(abs(shape.v)));
-end
-
-
-function [Trj, Acc, Pot] = maskPointsOutsideShapeModel(shape, Trj, Acc, Pot)
-    objPath = "src/data/Model/eros_shape_200700.obj";
-    matPath = "src/test/shape.mat";
-    if ~isfile(matPath)
-        shape      = readShapeModel(objPath);
-        max_extent = max(max(abs(shape.v)));  
-        shape.v    = shape.v / max_extent;
-        save("shape", "shape");
-    else
-        load(matPath, "shape");
-    end
-
-    trj    = extractdata(Trj)';
-    inside = inpolyhedron(shape.f.v, shape.v, trj)';
-    Trj    = Trj(:, ~inside);
-    Acc    = Acc(:, ~inside);
-    Pot    = Pot(:, ~inside);
-end
-
-
-function [Trj, Acc, Pot] = removeInside(Trj, Acc, Pot)
-    objPath = "src/data/Model/eros_shape_200700.obj";
-    matPath = "src/test/shape.mat";
-    if ~isfile(matPath)
-        shape      = readShapeModel(objPath);
-        max_extent = max(max(abs(shape.v)));  
-        shape.v    = shape.v / max_extent;
-        save("shape", "shape");
-    else
-        load(matPath, "shape");
-    end
-
-    trj    = extractdata(Trj)';
-    inside = inpolyhedron(shape.f.v, shape.v, trj)';
-    Trj    = Trj(:, ~inside);
-    Acc    = Acc(:, ~inside);
-    Pot    = Pot(:, ~inside);
-end

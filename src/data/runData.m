@@ -1,4 +1,5 @@
 baseDir = "Trajectories/";
+objPath = "Model/eros_shape_200700.obj";
 
 function data = loadData(path)
     data = double(py.pickle.load(py.open(path, "rb")));
@@ -100,6 +101,21 @@ mGeneralizationPOT_0_1    = mGeneralizationPOT_0_1.';
 mGeneralizationPOT_1_10   = mGeneralizationPOT_1_10.';
 mGeneralizationPOT_10_100 = mGeneralizationPOT_10_100.';
 mSurfacePOT               = mSurfacePOT.';
+
+% Masking asteroid in Planes data
+mesh   = py.trimesh.load_mesh(objPath);
+rayObj = py.trimesh.ray.ray_triangle.RayMeshIntersector(mesh);
+N      = size(mPlanesTRJ, 1);
+step   = 100;
+mask   = true(N, 1);
+for i = 1:step:N
+    endIdx = (floor(i / step) + 1) * step;
+    planesSubset = mPlanesTRJ(i:endIdx, :) / 1e3;
+    mask(i:endIdx) = ~logical(rayObj.contains_points(planesSubset));
+end
+mPlanesTRJ = mPlanesTRJ(mask, :);
+mPlanesACC = mPlanesACC(mask, :);
+mPlanesPOT = mPlanesPOT(mask, :);
 
 % Saving
 save("dataset.mat", ...
