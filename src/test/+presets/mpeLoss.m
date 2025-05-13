@@ -4,9 +4,8 @@ function [loss, Radius] = mpeLoss(net, Trj, Acc, ~)
     AccPred           = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
     % Loss
-    num        = vecnorm(AccPred - Acc);
-    den        = vecnorm(Acc);
-    loss       = zeros(size(Acc, 2), 1);
-    mask       = den ~= 0;
-    loss(mask) = num(mask) ./ den(mask) * 100;
+    num  = vecnorm(AccPred - Acc);
+    den  = vecnorm(Acc);
+    loss = num ./ den * 100;   % MPE
+    loss(Inf == loss) = 0;
 end

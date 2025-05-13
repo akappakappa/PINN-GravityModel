@@ -4,13 +4,12 @@ function [loss, gradients, state] = PINN_GM_III(net, Trj, Acc, ~, trainingMode)
     AccPred             = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
     % Loss
-    num        = vecnorm(AccPred - Acc);
-    den        = vecnorm(Acc);
-    loss       = zeros(size(Acc, 2), 1);
-    mask       = den ~= 0;
-    loss(mask) = num(mask) ./ den(mask);   % MPE
-    loss       = loss + num;               % ME
-    loss       = mean(loss, 2);
+    num  = vecnorm(AccPred - Acc);
+    den  = vecnorm(Acc);
+    loss = num ./ den;       % MPE
+    loss(Inf == loss) = 0;
+    loss = loss + num;       % ME
+    loss = mean(loss, 2);
 
     % Gradients
     if trainingMode

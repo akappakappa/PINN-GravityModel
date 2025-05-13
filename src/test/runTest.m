@@ -1,3 +1,4 @@
+headless      = false;
 metricsFolder = "src/preprocessing/datastore/metrics/";
 
 % Load data
@@ -23,7 +24,7 @@ SurfaceAcc               = dlarray(readmatrix(metricsFolder + "SurfaceAcc.csv"  
 SurfacePot               = dlarray(readmatrix(metricsFolder + "SurfacePot.csv"              ), 'BC');
 
 % Load Network
-net = load("src/training/net_GM3.mat").net;
+net = load("src/training/net.mat").net;
 
 % Compute metrics
 % ---------------------------------- | Preset function ----- | NN | Trajectory Data ------- | Acceleration Data ----- | Potential Data -------- |
@@ -43,6 +44,9 @@ fprintf("Generalization metric [0R:100R] : %f\n", mean(GeneralizationMetric     
 fprintf("Surface metric                  : %f\n", mean(SurfaceMetric              ));
 
 % Plotting
+if headless
+    return;
+end
 
 % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
 figure;

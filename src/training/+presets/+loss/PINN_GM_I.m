@@ -4,7 +4,7 @@ function [loss, gradients, state] = PINN_GM_I(net, Trj, Acc, ~, trainingMode)
     AccPred          = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
     % Loss
-    loss    = mse(AccPred, Acc);
+    loss = mse(AccPred, Acc);
 
     % Gradients
     if trainingMode
