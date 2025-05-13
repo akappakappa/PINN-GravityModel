@@ -1,21 +1,23 @@
 function [loss, gradients, state] = WeightedRadius(net, Trj, Acc, ~, trainingMode)
     % Forward
-    [PotPred, Radius, state] = forward(net, Trj);
+    [PotPred, ~, state] = forward(net, Trj);
+    AccPred             = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
     % Loss
-    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    diff    = AccPred - Acc;
-    RMS     = vecnorm(diff);
-    MPE     = vecnorm(diff) ./ vecnorm(Acc);
-    loss    = mean(RMS + MPE, 2);
+    num        = vecnorm(AccPred - Acc);
+    den        = vecnorm(Acc);
+    loss       = zeros(size(Acc, 2), 1);
+    mask       = den ~= 0;
+    loss(mask) = num(mask) ./ den(mask);   % MPE
+    loss       = loss + num;               % ME
+
+    % Weighted loss
+    sig        = 5;
+    weights    = exp(-((Radius - 1) .^ 2) / (2 * sig ^ 2));
+    loss       = mean(loss .* weights, 2);
 
     % Gradients
     if trainingMode
-        PointLoss = RMS + MPE;
-        sig = 5;
-        weights = exp(- ((Radius - 1) .^ 2) / (2 * sig ^ 2));
-        WeightedLoss = PointLoss .* weights;
-        loss = mean(WeightedLoss);
         gradients = dlgradient(loss, net.Learnables);
     else
         gradients = [];

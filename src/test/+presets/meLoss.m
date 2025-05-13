@@ -1,9 +1,8 @@
-function loss = meLoss(net, Trj, Acc, ~)
+function [loss, Radius] = meLoss(net, Trj, Acc, ~)
     % Forward
-    PotPred = forward(net, Trj);
+    [PotPred, Radius] = forward(net, Trj);
+    AccPred           = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
-    % Metric
-    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    PRC     = vecnorm(Acc - AccPred);
-    loss    = mean(PRC, 2);
+    % Loss
+    loss = vecnorm(Acc - AccPred);
 end

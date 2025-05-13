@@ -1,9 +1,12 @@
-function loss = mpeLoss(net, Trj, Acc, ~)
+function [loss, Radius] = mpeLoss(net, Trj, Acc, ~)
     % Forward
-    PotPred = forward(net, Trj);
+    [PotPred, Radius] = forward(net, Trj);
+    AccPred           = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
-    % Metric
-    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
-    PRC     = vecnorm(Acc - AccPred) ./ vecnorm(Acc) * 100;
-    loss    = mean(PRC, 2);
+    % Loss
+    num        = vecnorm(AccPred - Acc);
+    den        = vecnorm(Acc);
+    loss       = zeros(size(Acc, 2), 1);
+    mask       = den ~= 0;
+    loss(mask) = num(mask) ./ den(mask) * 100;
 end

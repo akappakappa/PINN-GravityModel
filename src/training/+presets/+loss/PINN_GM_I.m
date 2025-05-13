@@ -1,9 +1,9 @@
 function [loss, gradients, state] = PINN_GM_I(net, Trj, Acc, ~, trainingMode)
     % Forward
     [PotPred, state] = forward(net, Trj);
+    AccPred          = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
 
-    % Loss, TODO: more big chonky loss
-    AccPred = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    % Loss
     loss    = mse(AccPred, Acc);
 
     % Gradients
