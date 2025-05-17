@@ -26,7 +26,7 @@ SurfaceAcc               = dlarray(readmatrix(metricsFolder + "SurfaceAcc.csv"  
 SurfacePot               = dlarray(readmatrix(metricsFolder + "SurfacePot.csv"              ), 'BC');
 
 % Load Network
-net = load("src/training/net-SIREN.mat").net;
+net = load("src/training/net.mat").net;
 
 % Compute metrics
 % ---------------------------------- | Preset function ----- | NN | Trajectory Data ------- | Acceleration Data ----- | Potential Data -------- |
