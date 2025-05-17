@@ -8,7 +8,10 @@
 %     Giovanni   Brejc          2096046
 
 close all; clear; clc;
-addpath(genpath("src"));
+addpath(genpath(fileparts(mfilename('fullpath'))));
+if batchStartupOptionUsed
+    cd ..
+end
 
 DO_DATA_EXTRACTION   = false;
 DO_PREPROCESSING     = true;
