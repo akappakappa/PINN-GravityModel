@@ -61,6 +61,8 @@ title('Generalization: MPE vs. Distance (R)');
 legend('show'); 
 grid on;
 
+return;
+
 % Planes: heatmap of 3 planes, value=mpeLoss(i), 2Dposition=PlanesTrj, planeID= which value of PlanesTrj(1:3,i) is 0
 figure;
 title('Planes: MPE');
