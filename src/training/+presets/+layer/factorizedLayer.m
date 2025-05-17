@@ -1,14 +1,17 @@
 classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
+    % factorizedLayer Factorized layer for fewer parameters.
+    %   This layer uses a factorized matrix to reduce the number of parameters, W = W1 * W2.
+
     properties (Learnable)
-        W1
-        W2
-        Bias
+        W1     % First Weight matrix
+        W2     % Second Weight matrix
+        Bias   % Bias vector
     end
     
     properties
-        InputSize
-        OutputSize
-        Rank
+        InputSize    % Size of the input layer
+        OutputSize   % Size of the output layer
+        Rank         % Rank of the factorization
     end
     
     methods
@@ -20,6 +23,8 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
                 args.Name        = "factorizedLayer";
                 args.Description = "Factorized layer for fewer parameters";
             end
+            % Construct the layer, performing Glorot initialization for W and spectral initialization for W1 and W2.
+
             layer.Name       = args.Name;
             layer.InputSize  = InputSize;
             layer.OutputSize = OutputSize;
@@ -40,6 +45,8 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
         end
         
         function Z = predict(layer, X)
+            % Computes the output of the layer using the factorized weights.
+
             W = layer.W1 * layer.W2;
             Z = fullyconnect(X, W, layer.Bias);
         end

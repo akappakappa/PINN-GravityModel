@@ -1,4 +1,9 @@
-dataset = load("src/data/dataset.mat");
+% This script preprocesses the dataset.mat file in src/data and saves the resulting data in the datastore folder.
+%
+% File: runPreprocessing.m
+%     entrypoint for Preprocessing
+
+dataset   = load("src/data/dataset.mat");
 
 % Parameters
 dataset.params  = struct();

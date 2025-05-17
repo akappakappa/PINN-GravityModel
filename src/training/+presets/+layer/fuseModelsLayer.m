@@ -1,6 +1,9 @@
 classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
+    % fuseModelsLayer Fuses the Neural Network and Low-Fidelity Analytic Model Potentials.
+    %   This layer fuses the Neural Network and Low-Fidelity Analytic Model Potentials.
+
     properties
-        e
+        e   % Physical parameter
     end
 
     methods
@@ -12,6 +15,8 @@ classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
                 args.OutputNames = "Potential";
                 args.e
             end
+            % Construct the layer, given E.
+
             layer.Name        = args.Name;
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
@@ -20,8 +25,10 @@ classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
         end
 
         function Potential = predict(layer, PotNN, PotLF, Radius)
-            refFusion         = 1 + layer.e;
-            smoothFusion      = 0.5;                                                     % Slower transition
+            % Computes the potential at the given RADIUS, fusing the Neural Network and Low-Fidelity Analytic Model Potentials.
+
+            refFusion         = 0;                                                       % 1 + layer.e;
+            smoothFusion      = 0.5;                                                     % Transition
             weightLowFidelity = (1 + tanh(smoothFusion .* (Radius - refFusion))) ./ 2;   % Smooth transition from Network to Low-Fidelity model around 1+e
             Potential         = PotNN + weightLowFidelity .* PotLF;
         end

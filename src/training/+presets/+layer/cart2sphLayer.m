@@ -1,4 +1,7 @@
 classdef cart2sphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
+    % cart2sphLayer Convert cartesian coordinates to spherical coordinates.
+    %   This layer computes the spherical coordinates as [ri, re, s, t, u] vector.
+
     methods
         function layer = cart2sphLayer(args)
             arguments
@@ -7,6 +10,8 @@ classdef cart2sphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
                 args.InputNames  = "Trajectory";
                 args.OutputNames = ["Spherical", "Radius"];
             end
+            % Construct the layer.
+
             layer.Name        = args.Name;
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
@@ -14,6 +19,8 @@ classdef cart2sphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
         end
 
         function [Spherical, Radius] = predict(~, Trajectory)
+            % Computes the [ri, re, s, t, u] spherical coordinates at the given [x, y, z] TRAJECTORY points.
+
             % Get cartesian coordinates
             [x, y, z] = deal(Trajectory(1, :), Trajectory(2, :), Trajectory(3, :));
 

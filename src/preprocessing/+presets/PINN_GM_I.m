@@ -1,4 +1,6 @@
 function [dataOut, split] = PINN_GM_I(dataIn, splitPercentages)
+    % PINN_GM_I  Outdated preprocessing preset.
+
     [shuffle, divide, minmax] = deal(struct);
 
     % Shuffle dataset

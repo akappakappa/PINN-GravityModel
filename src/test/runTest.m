@@ -1,5 +1,7 @@
-headless      = false;
-metricsFolder = "src/preprocessing/datastore/metrics/";
+% This script tests the performance of the trained model.
+
+headless        = batchStartupOptionUsed;
+metricsFolder   = "src/preprocessing/datastore/metrics/";
 
 % Load data
 PlanesTrj                = dlarray(readmatrix(metricsFolder + "PlanesTrj.csv"               ), 'BC');
@@ -24,7 +26,7 @@ SurfaceAcc               = dlarray(readmatrix(metricsFolder + "SurfaceAcc.csv"  
 SurfacePot               = dlarray(readmatrix(metricsFolder + "SurfacePot.csv"              ), 'BC');
 
 % Load Network
-net = load("src/training/net.mat").net;
+net = load("src/training/net-SIREN.mat").net;
 
 % Compute metrics
 % ---------------------------------- | Preset function ----- | NN | Trajectory Data ------- | Acceleration Data ----- | Potential Data -------- |

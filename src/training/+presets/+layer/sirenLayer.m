@@ -1,11 +1,14 @@
 classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
+    % sirenLayer SIREN Layer
+    %   This layer implements the SIREN activation function, which is a sine activation function with learnable weights and bias.
+
     properties (Learnable)
-        Weights
-        Bias
+        Weights   % Weights matrix
+        Bias      % Bias vector
     end
     
     properties
-        Omega0
+        Omega0   % Frequency parameter
     end
     
     methods
@@ -17,6 +20,8 @@ classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.F
                 args.Name        = "sirenLayer";
                 args.Description = "SIREN Layer";
             end
+            % Construct the layer, performing Glorot initialization for weights and setting the frequency parameter Omega0.
+
             layer.Name   = args.Name;
             layer.Omega0 = Omega0;
 
@@ -31,6 +36,8 @@ classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.F
         end
         
         function Z = predict(layer, X)
+            % Computes the output of the layer using the weights and sine activation function.
+
             Z = sin(layer.Omega0 * fullyconnect(X, layer.Weights, layer.Bias));
         end
     end

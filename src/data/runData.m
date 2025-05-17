@@ -1,24 +1,11 @@
-baseDir = "Trajectories/";
-objPath = "Model/eros_shape_200700.obj";
+% This script extracts data from the specified folders and saves it in a dataset.mat file.
+%
+% File: runData.m
+%     entrypoint for Data Extraction
+%     Data is organized in trajectory.data, acceleration.data, and potential.data files.
 
-function data = loadData(path)
-    data = double(py.pickle.load(py.open(path, "rb")));
-end
-
-function path = goDeep(path, match)
-    oneDeeper = dir(path);
-    oneDeeper = oneDeeper(contains({oneDeeper.name}, match)).name;
-    path      = path + oneDeeper + "/";
-end
-
-function matches = listMatchesWithinBounds(path, match, bound)
-    list = [];
-    for i = bound(1):bound(2) - 1
-        list = [list, match + "_RadBounds[" + 16000 * i + ".0"];
-    end
-    matches   = dir(path);
-    matches   = {matches(contains({matches.name}, list)).name};
-end
+baseDir   = "Trajectories/";
+objPath   = "Model/eros_shape_200700.obj";
 
 % Test Surface data
 folder      = "SurfaceDist/";
@@ -128,3 +115,33 @@ save("dataset.mat", ...
     "mSurfaceTRJ"              , "mSurfaceACC"              , "mSurfacePOT"                ...
 );
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
+
+
+
+function data = loadData(path)
+    % LOADDATA  Load Python Pickle data from a file.
+    %   DATA = LOADDATA(PATH) loads the data from the file specified by PATH, casting it to double.
+
+    data = double(py.pickle.load(py.open(path, "rb")));
+end
+
+function path = goDeep(path, match)
+    % GODEEP  Travel one level deeper in the directory structure.
+    %   PATH = GODEEP(PATH, MATCH) travels one level deeper in the directory structure, looking for a MATCH in the directory name.
+
+    oneDeeper = dir(path);
+    oneDeeper = oneDeeper(contains({oneDeeper.name}, match)).name;
+    path      = path + oneDeeper + "/";
+end
+
+function matches = listMatchesWithinBounds(path, match, bound)
+    % LISTMATCHESWITHINBOUNDS  List all dataset folders with data within specified bounds.
+    %   MATCHES = LISTMATCHESWITHINBOUNDS(PATH, MATCH, BOUND) lists all dataset folders matching the MATCH string, with data within the specified BOUNDS.
+
+    list = [];
+    for i = bound(1):bound(2) - 1
+        list = [list, match + "_RadBounds[" + 16000 * i + ".0"];
+    end
+    matches   = dir(path);
+    matches   = {matches(contains({matches.name}, list)).name};
+end

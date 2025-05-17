@@ -1,19 +1,29 @@
-executionEnvironment  = "auto";   % Leave as "auto" for GPU training if found, or set to "gpu" or "cpu"
-headless              = false;    % !!! SET TO TRUE FOR HEADLESS TRAINING IN NON-GUI ENVIRONMENT !!!
-recoverFromCheckpoint = false;    % Only set to true if you want to recover from a checkpoint on stopped training
-useGPU                = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
+% This script contains the training loop for the Physics-Informed NN model.
+%
+% File: runTraining.m
+%     entrypoint for Training
+
+executionEnvironment    = "auto";   % Leave as "auto" for GPU training if found, or set to "gpu" or "cpu"
+headless                = batchStartupOptionUsed;
+recoverFromCheckpoint   = false;    % Only set to true if you want to recover from a checkpoint on stopped training
+useGPU                  = ("auto" == executionEnvironment && canUseGPU) || "gpu" == executionEnvironment;
 
 % Preparations - Data
-data                      = tLoadDatastore("src/preprocessing/datastore");
-[net, modelLoss, options] = tLoadPresets(data, useGPU);   % Modify body of this function below to change presets (network, loss, options)
-[tMBQ, vMBQ]              = tSetupMinibatchQueues(data, options, useGPU);
+data         = tLoadDatastore("src/preprocessing/datastore");
+net          = initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e));
+modelLoss    = dlaccelerate(@presets.loss.PINN_GM_III);
+options      = presets.options.PINN_GM_III(data.params.split(1));
+if useGPU
+    net      = dlupdate(@gpuArray, net);
+end
+[tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, useGPU);
 
 % Preparations - Loop
-epoch         = 0;
-iteration     = 0;
-averageGrad   = [];
-averageSqGrad = [];
-bestNet       = net;
+epoch         = 0;     % Epoch counter
+iteration     = 0;     % Iteration counter
+averageGrad   = [];    % Adam parameter
+averageSqGrad = [];    % Adam parameter
+bestNet       = net;   % Best network so far
 
 % IF recovering from checkpoint on stopped training
 if recoverFromCheckpoint
@@ -100,9 +110,13 @@ end
 % Save
 net = bestNet;
 save("net", "net");
-return
+
+
 
 function data = tLoadDatastore(path)
+    % TLOADDATASTORE  Load the data from the specified path.
+    %   DATA = TLOADDATASTORE(PATH) loads the data from the specified path, shuffling the training and validation sets.
+
     data            = struct();
     data.params     = readstruct(path + "/params.json");
     data.train      = shuffle(combine( ...
@@ -117,23 +131,9 @@ function data = tLoadDatastore(path)
     ));
 end
 
-function [network, loss, options] = tLoadPresets(data, useGPU)    
-    network = initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e));
-    loss    = dlaccelerate(@presets.loss.PINN_GM_III);
-    options = presets.options.PINN_GM_III(data.params.split(1));
-    if useGPU
-        network = dlupdate(@gpuArray, network);
-    end
-end
-
 function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, useGPU)
-    function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot, useGPU)
-        [Trj, Acc, Pot]     = deal(cat(1, Trj{:})    , cat(1, Acc{:})    , cat(1, Pot{:})    );
-        if useGPU
-            [Trj, Acc, Pot] = deal(gpuArray(Trj)     , gpuArray(Acc)     , gpuArray(Pot)     );
-        end
-        [Trj, Acc, Pot]     = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
-    end
+    % TSETUPMINIBATCHQUEUES  Setup the mini-batch queues for training and validation.
+    %   [TMBQ, VMBQ] = TSETUPMINIBATCHQUEUES(DATA, OPTIONS, USEGPU) sets up the mini-batch queues for training and validation, given OPTIONS and whether to USEGPU.
     
     tMBQ = minibatchqueue(data.train                                               , ...
         MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU), ...
@@ -144,9 +144,25 @@ function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, useGPU)
         MiniBatchFcn  = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot, useGPU)                                , ...
         MiniBatchSize = floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch  ...
     );
+
+
+
+    function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot, useGPU)
+        % PREPROCESSMINIBATCH  Preprocess the mini-batch data.
+        %   [TRJ, ACC, POT] = PREPROCESSMINIBATCH(TRJ, ACC, POT, USEGPU) preprocesses the mini-batch data, given USEGPU.
+
+        [Trj, Acc, Pot]     = deal(cat(1, Trj{:})    , cat(1, Acc{:})    , cat(1, Pot{:})    );
+        if useGPU
+            [Trj, Acc, Pot] = deal(gpuArray(Trj)     , gpuArray(Acc)     , gpuArray(Pot)     );
+        end
+        [Trj, Acc, Pot]     = deal(dlarray(Trj, 'BC'), dlarray(Acc, 'BC'), dlarray(Pot, 'BC'));
+    end
 end
 
 function monitor = tMakeMonitor(headless)
+    % TMAKEMONITOR  Create a training progress monitor.
+    %   MONITOR = TMAKEMONITOR(HEADLESS) creates a training progress monitor, if HEADLESS=true it will create a mock monitor.
+
     if ~headless
         monitor = trainingProgressMonitor( ...
             Metrics = ["TrainingLoss", "ValidationLoss"]    , ...

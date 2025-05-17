@@ -1,9 +1,15 @@
 function data = PINN_GM_III(data)
+    % PINN_GM_III  Preprocess raw data for Physics-Informed Neural Network model training.
+    %   DATA = PINN_GM_III(DATA) preprocesses the raw data by adding extra physical parameters, non-dimensionalizing the data, and splitting it into training and validation sets.
+
     data = pAddExtraParameters(data);
     data = pNonDimensionalize(data);
     data = pMakeValidationSet(data);
 
     function data = pAddExtraParameters(data)
+        % PADDEXTRAPARAMETERS  Add extra physical parameters to the data structure.
+        %   DATA = PADDEXTRAPARAMETERS(DATA) adds rMax=16'000, mu=g*vol*density and e=sqrt(1 - b ^ 2 / a ^ 2).
+
         % Radius Max
         data.params.rMax = 16000;   % Eros radius
 
@@ -20,10 +26,17 @@ function data = PINN_GM_III(data)
     end
 
     function data = pNonDimensionalize(data)
-        % Non-dimensionalize the data
+        % PNONDIMENSIONALIZE  Non-dimensionalize the data.
+        %   DATA = PNONDIMENSIONALIZE(DATA) scales the data to be non-dimensional by dividing it by specific values derived from physical Eros properties.
+        
         % Values for the non-dimensionalization derived from Eros model
         sTRJ  = data.params.rMax;
-        sPOT  = max(abs(data.tSurfacePOT));   % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
+        Ulf   = -data.params.mu ./ sqrt(                                 ...
+            cat(1, data.tSurfaceTRJ(:, 1), data.tRandomTRJ(:, 1)) .^ 2 + ...
+            cat(1, data.tSurfaceTRJ(:, 2), data.tRandomTRJ(:, 2)) .^ 2 + ...
+            cat(1, data.tSurfaceTRJ(:, 3), data.tRandomTRJ(:, 3)) .^ 2   ...
+        );
+        sPOT  = max(abs(cat(1, data.tSurfacePOT, data.tRandomPOT) - Ulf));   % data.tRandomPOT NOT included as it has lower values than data.tSurfacePOT anyways
         sTIME = sqrt((sTRJ ^ 2) / sPOT);
         sACC  = sTRJ / (sTIME ^ 2);
         sMU   = sTIME ^ 2 / sTRJ ^ 3;
@@ -61,6 +74,9 @@ function data = PINN_GM_III(data)
     end
 
     function data = pMakeValidationSet(data)
+        % PMAKEVALIDATIONSET  Split the data into training and validation sets.
+        %   DATA = PMAKEVALIDATIONSET(DATA) shuffles the data and splits it into training and validation sets based on the specified split percentage.
+
         % Generate shuffle indexes
         pSurfaceIdx = randperm(size(data.tSurfaceTRJ, 1));
         pRandomIdx  = randperm(size(data.tRandomTRJ, 1));
@@ -91,5 +107,4 @@ function data = PINN_GM_III(data)
 
         clearvars data.tSurfaceTRJ data.tSurfaceACC data.tSurfacePOT data.tRandomTRJ data.tRandomACC data.tRandomPOT;
     end
-
 end
