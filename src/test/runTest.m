@@ -91,3 +91,5 @@ colorbar;
 figure;
 scatter3(extractdata(SurfaceTrj(1, :)), extractdata(SurfaceTrj(2, :)), extractdata(SurfaceTrj(3, :)), 2e2, SurfaceMetric, 'o', 'filled');
 title('Surface: MPE');
+
+clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
