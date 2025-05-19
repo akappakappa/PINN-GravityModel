@@ -22,7 +22,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
 
             refBounds     = 10;                                                      % 10R = max altitude of the training dataset
-            smoothBounds  = 0.5;                                                     % Transition
+            smoothBounds  = 0.5;                                                     % Transition smoothness
             weightBounds  = (1 + tanh(smoothBounds .* (Radius - refBounds))) ./ 2;   % Smooth transition from Network to Boundary Conditions around 10R
             weightNetwork = 1 - weightBounds;
             Potential     = weightNetwork .* PotFused + weightBounds .* PotLF;

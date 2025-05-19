@@ -27,10 +27,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
         function Potential = predict(layer, Radius)
             % Computes the potential at the given RADIUS, differentiating between internal (0R:1R) and external (>1R) regions.
 
-            uInternal = layer.mu .* Radius .^ 2 + 2 * (-layer.mu);
-            uExternal = -layer.mu ./ Radius;
-            mask      = Radius < 1;
-            Potential = mask .* uInternal + (1 - mask) .* uExternal;
+            Potential = -(layer.mu ./ Radius);
         end
     end
 end

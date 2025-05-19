@@ -24,12 +24,12 @@ classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
             layer.e           = args.e;
         end
 
-        function Potential = predict(layer, PotNN, PotLF, Radius)
+        function Potential = predict(~, PotNN, PotLF, Radius)
             % Computes the potential at the given RADIUS, fusing the Neural Network and Low-Fidelity Analytic Model Potentials.
 
-            refFusion         = 0;                                                       % 1 + layer.e;
-            smoothFusion      = 0.5;                                                     % Transition
-            weightLowFidelity = (1 + tanh(smoothFusion .* (Radius - refFusion))) ./ 2;   % Smooth transition from Network to Low-Fidelity model around 1+e
+            refFusion         = 0;                                                       % 0R = start from the center of the asteroid
+            smoothFusion      = 0.5;                                                     % Transition smoothness
+            weightLowFidelity = (1 + tanh(smoothFusion .* (Radius - refFusion))) ./ 2;   % Smooth addition of PotLF from 0R
             Potential         = PotNN + weightLowFidelity .* PotLF;
         end
     end
