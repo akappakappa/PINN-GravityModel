@@ -1,19 +1,17 @@
-function [loss, gradients, state] = WeightedRadius(net, Trj, Acc, ~, trainingMode)
+function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, trainingMode)
     % WeightedRadius  Similar to PINN_GM_III, but with adds radius-based weighting to the loss function.
     %   [LOSS, GRADIENTS, STATE] = WEIGHTEDRADIUS(NET, TRJ, ACC, ~, TRAININGMODE) computes the loss and gradients for the PINN model as the mean of the sum of Mean Percentage Error (MPE) and Mean Error (ME) between the predicted (with automatic differentiation) and the actual acceleration, then weights it by the radius of the trajectory.
 
     % Forward
-    [PotPred, Radius, state] = forward(net, Trj);
-    AccPred                  = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    [pPOT, Radius, state] = forward(net, TRJ);
+    pACC                  = -dlgradient(sum(pPOT, 'all'), TRJ, EnableHigherDerivatives = true);
 
     % Loss
-    num  = vecnorm(AccPred - Acc);
-    den  = vecnorm(Acc);
-    loss = num ./ den;       % MPE
-    loss(Inf == loss) = 0;
-    loss = loss + num;       % ME
+    AbsoluteLoss = vecnorm(pACC - ACC);
+    PercentLoss  = AbsoluteLoss ./ vecnorm(ACC);
+    PercentLoss(Inf == PercentLoss) = 0;   % Fix division by zero
 
-    % Weighted loss
+    loss = AbsoluteLoss + PercentLoss;
     sig     = 5;
     weights = exp(-((Radius - 1) .^ 2) / (2 * sig ^ 2));
     loss    = mean(loss .* weights, 2);

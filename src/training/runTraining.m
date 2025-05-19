@@ -9,7 +9,7 @@ recoverFromCheckpoint   = false;    % Only set to true if you want to recover fr
 useGPU                  = ("auto" == executionEnvironment || "gpu" == executionEnvironment) && canUseGPU;
 
 % Preparations - Data
-data         = tLoadDatastore("src/preprocessing/datastore");
+data         = tLoadData("src/preprocessing/trainingData.mat");
 net          = dlupdate(@double, initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e)));
 modelLoss    = dlaccelerate(@presets.loss.PINN_GM_III);
 options      = presets.options.PINN_GM_III(data.params.split(1));
@@ -55,8 +55,8 @@ while epoch < options.numEpochs && ~monitor.Stop
     % Loop over mini-batches
     while hasdata(tMBQ) && ~monitor.Stop
         iteration                         = iteration + 1;
-        [Trj, Acc, Pot]                   = next(tMBQ);
-        [loss, gradients, net.State]      = dlfeval(modelLoss, net, Trj, Acc, Pot, true);
+        [TRJ, ACC, POT]                   = next(tMBQ);
+        [loss, gradients, net.State]      = dlfeval(modelLoss, net, TRJ, ACC, POT, true);
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
         
         if ~headless
@@ -65,8 +65,8 @@ while epoch < options.numEpochs && ~monitor.Stop
         
         % Validation
         if (1 == iteration || 0 == mod(iteration, options.numIterationsPerEpoch)) && hasdata(vMBQ) && ~monitor.Stop
-            [Trj, Acc, Pot]        = next(vMBQ);
-            [validationLoss, ~, ~] = dlfeval(modelLoss, net, Trj, Acc, Pot, false);
+            [TRJ, ACC, POT]        = next(vMBQ);
+            [validationLoss, ~, ~] = dlfeval(modelLoss, net, TRJ, ACC, POT, false);
             
             if ~headless
                 recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
@@ -114,29 +114,20 @@ clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
 
 
 
-function data = tLoadDatastore(path)
+function data = tLoadData(path)
     % TLOADDATASTORE  Load the data from the specified path.
     %   DATA = TLOADDATASTORE(PATH) loads the data from the specified path, shuffling the training and validation sets.
 
-    data            = struct();
-    data.params     = readstruct(path + "/params.json");
-
-    trainTrj        = readmatrix(path + "/train/Trj.csv");
-    trainAcc        = readmatrix(path + "/train/Acc.csv");
-    trainPot        = readmatrix(path + "/train/Pot.csv");
-    data.train      = shuffle(combine( ...
-        arrayDatastore(trainTrj)     , ...
-        arrayDatastore(trainAcc)     , ...
-        arrayDatastore(trainPot)       ...
+    data = load(path);
+    data.train      = shuffle(combine(      ...
+        arrayDatastore(data.trainTRJ)     , ...
+        arrayDatastore(data.trainACC)     , ...
+        arrayDatastore(data.trainPOT)       ...
     ));
-
-    validationTrj   = readmatrix(path + "/validation/Trj.csv");
-    validationAcc   = readmatrix(path + "/validation/Acc.csv");
-    validationPot   = readmatrix(path + "/validation/Pot.csv");
-    data.validation = shuffle(combine( ...
-        arrayDatastore(validationTrj), ...
-        arrayDatastore(validationAcc), ...
-        arrayDatastore(validationPot)  ...
+    data.validation = shuffle(combine(      ...
+        arrayDatastore(data.validationTRJ), ...
+        arrayDatastore(data.validationACC), ...
+        arrayDatastore(data.validationPOT)  ...
     ));
 end
 
@@ -145,7 +136,7 @@ function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, executionEnvironmen
     %   [TMBQ, VMBQ] = TSETUPMINIBATCHQUEUES(DATA, OPTIONS, EXECUTIONENVIRONMENT) sets up the mini-batch queues for training and validation, given OPTIONS and EXECUTIONENVIRONMENT.
     
     tMBQ = minibatchqueue(data.train                                           , ...
-        MiniBatchFcn      = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot), ...
+        MiniBatchFcn      = @(TRJ, ACC, POT) preprocessMiniBatch(TRJ, ACC, POT), ...
         MiniBatchSize     = options.miniBatchSize                              , ...
         OutputEnvironment = executionEnvironment                               , ...
         MiniBatchFormat   = 'BC'                                               , ...
@@ -153,7 +144,7 @@ function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, executionEnvironmen
     );
     
     vMBQ = minibatchqueue(data.validation                                                                              , ...
-        MiniBatchFcn      = @(Trj, Acc, Pot) preprocessMiniBatch(Trj, Acc, Pot)                                        , ...
+        MiniBatchFcn      = @(TRJ, ACC, POT) preprocessMiniBatch(TRJ, ACC, POT)                                        , ...
         MiniBatchSize     = floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch, ...
         OutputEnvironment = executionEnvironment                                                                       , ...
         MiniBatchFormat   = 'BC'                                                                                       , ...
@@ -162,13 +153,13 @@ function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, executionEnvironmen
 
 
 
-    function [Trj, Acc, Pot] = preprocessMiniBatch(Trj, Acc, Pot)
+    function [TRJ, ACC, POT] = preprocessMiniBatch(TRJ, ACC, POT)
         % PREPROCESSMINIBATCH  Preprocess the mini-batch data.
         %   [TRJ, ACC, POT] = PREPROCESSMINIBATCH(TRJ, ACC, POT) preprocesses the mini-batch data.
 
-        Trj = cat(1, Trj{:});
-        Acc = cat(1, Acc{:});
-        Pot = cat(1, Pot{:});
+        TRJ = cat(1, TRJ{:});
+        ACC = cat(1, ACC{:});
+        POT = cat(1, POT{:});
     end
 end
 

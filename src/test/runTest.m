@@ -3,39 +3,18 @@
 headless        = batchStartupOptionUsed;
 metricsFolder   = "src/preprocessing/datastore/metrics/";
 
-% Load data
-PlanesTrj                = dlarray(readmatrix(metricsFolder + "PlanesTrj.csv"               ), 'BC');
-PlanesAcc                = dlarray(readmatrix(metricsFolder + "PlanesAcc.csv"               ), 'BC');
-PlanesPot                = dlarray(readmatrix(metricsFolder + "PlanesPot.csv"               ), 'BC');
-
-GeneralizationTrj_0_1    = dlarray(readmatrix(metricsFolder + "GeneralizationTrj_0_1.csv"   ), 'BC');
-GeneralizationAcc_0_1    = dlarray(readmatrix(metricsFolder + "GeneralizationAcc_0_1.csv"   ), 'BC');
-GeneralizationPot_0_1    = dlarray(readmatrix(metricsFolder + "GeneralizationPot_0_1.csv"   ), 'BC');
-GeneralizationTrj_1_10   = dlarray(readmatrix(metricsFolder + "GeneralizationTrj_1_10.csv"  ), 'BC');
-GeneralizationAcc_1_10   = dlarray(readmatrix(metricsFolder + "GeneralizationAcc_1_10.csv"  ), 'BC');
-GeneralizationPot_1_10   = dlarray(readmatrix(metricsFolder + "GeneralizationPot_1_10.csv"  ), 'BC');
-GeneralizationTrj_10_100 = dlarray(readmatrix(metricsFolder + "GeneralizationTrj_10_100.csv"), 'BC');
-GeneralizationAcc_10_100 = dlarray(readmatrix(metricsFolder + "GeneralizationAcc_10_100.csv"), 'BC');
-GeneralizationPot_10_100 = dlarray(readmatrix(metricsFolder + "GeneralizationPot_10_100.csv"), 'BC');
-GeneralizationTrj        = cat(2, GeneralizationTrj_0_1, GeneralizationTrj_1_10, GeneralizationTrj_10_100);
-GeneralizationAcc        = cat(2, GeneralizationAcc_0_1, GeneralizationAcc_1_10, GeneralizationAcc_10_100);
-GeneralizationPot        = cat(2, GeneralizationPot_0_1, GeneralizationPot_1_10, GeneralizationPot_10_100);
-
-SurfaceTrj               = dlarray(readmatrix(metricsFolder + "SurfaceTrj.csv"              ), 'BC');
-SurfaceAcc               = dlarray(readmatrix(metricsFolder + "SurfaceAcc.csv"              ), 'BC');
-SurfacePot               = dlarray(readmatrix(metricsFolder + "SurfacePot.csv"              ), 'BC');
-
-% Load Network
-net = load("src/training/net.mat").net;
+% Preparations - Data
+data = mLoadData("src/preprocessing/metricsData.mat");
+net  = load("src/training/net.mat").net;
 
 % Compute metrics
-% ---------------------------------- | Preset function ----- | NN | Trajectory Data ------- | Acceleration Data ----- | Potential Data -------- |
-[PlanesMetric               , PlanesRadius        ] = dlfeval(@presets.mpeLoss, net, PlanesTrj               , PlanesAcc               , PlanesPot               );
-[GeneralizationMetric_0_1   , GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, GeneralizationTrj_0_1   , GeneralizationAcc_0_1   , GeneralizationPot_0_1   );
-[GeneralizationMetric_1_10  , GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, GeneralizationTrj_1_10  , GeneralizationAcc_1_10  , GeneralizationPot_1_10  );
-[GeneralizationMetric_10_100, GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, GeneralizationTrj_10_100, GeneralizationAcc_10_100, GeneralizationPot_10_100);
-[GeneralizationMetric       , GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, GeneralizationTrj       , GeneralizationAcc       , GeneralizationPot       );
-[SurfaceMetric              , SurfaceRadius       ] = dlfeval(@presets.mpeLoss, net, SurfaceTrj              , SurfaceAcc              , SurfacePot              );
+% ---------------------------------------------------------- | Preset func -- | NN | Trajectory Data ------------- | Acceleration Data ----------- | Potential Data -------------- |
+[PlanesMetric               , PlanesRadius        ] = dlfeval(@presets.mpeLoss, net, data.mPlanesTRJ               , data.mPlanesACC               , data.mPlanesPOT               );
+[GeneralizationMetric_0_1   , GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, data.mGeneralizationTRJ_0_1   , data.mGeneralizationACC_0_1   , data.mGeneralizationPOT_0_1   );
+[GeneralizationMetric_1_10  , GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, data.mGeneralizationTRJ_1_10  , data.mGeneralizationACC_1_10  , data.mGeneralizationPOT_1_10  );
+[GeneralizationMetric_10_100, GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, data.mGeneralizationTRJ_10_100, data.mGeneralizationACC_10_100, data.mGeneralizationPOT_10_100);
+[GeneralizationMetric       , GeneralizationRadius] = dlfeval(@presets.mpeLoss, net, data.mGeneralizationTRJ       , data.mGeneralizationACC       , data.mGeneralizationPOT       );
+[SurfaceMetric              , SurfaceRadius       ] = dlfeval(@presets.mpeLoss, net, data.mSurfaceTRJ              , data.mSurfaceACC              , data.mSurfacePOT              );
 
 fprintf("\n### Mean Percent Error (MPE) ###\n");
 fprintf("Planes metric                   : %f\n", mean(PlanesMetric               ));
@@ -93,3 +72,17 @@ scatter3(extractdata(SurfaceTrj(1, :)), extractdata(SurfaceTrj(2, :)), extractda
 title('Surface: MPE');
 
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
+
+
+
+function data = mLoadData(path)
+    data = load(path);
+    data.mGeneralizationTRJ = cat(1, data.mGeneralizationTRJ_0_1, data.mGeneralizationTRJ_1_10, data.mGeneralizationTRJ_10_100);
+    data.mGeneralizationACC = cat(1, data.mGeneralizationACC_0_1, data.mGeneralizationACC_1_10, data.mGeneralizationACC_10_100);
+    data.mGeneralizationPOT = cat(1, data.mGeneralizationPOT_0_1, data.mGeneralizationPOT_1_10, data.mGeneralizationPOT_10_100);
+
+    names = fieldnames(data);
+    for i = 1:numel(names)
+        data.(names{i}) = dlarray(data.(names{i}), 'BC');
+    end
+end

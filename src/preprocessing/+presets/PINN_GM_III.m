@@ -5,6 +5,12 @@ function data = PINN_GM_III(data)
     data = pAddExtraParameters(data);
     data = pNonDimensionalize(data);
     data = pMakeValidationSet(data);
+    data = rmfield(data, {                           ...
+        'tSurfaceTRJ', 'tSurfaceACC', 'tSurfacePOT', ...
+        'tRandomTRJ' , 'tRandomACC' , 'tRandomPOT'   ...
+    });
+
+
 
     function data = pAddExtraParameters(data)
         % PADDEXTRAPARAMETERS  Add extra physical parameters to the data structure.
@@ -104,7 +110,5 @@ function data = PINN_GM_III(data)
 
         % Save split amounts
         data.params.split = [size(data.trainTRJ, 1), size(data.validationTRJ, 1)];
-
-        clearvars data.tSurfaceTRJ data.tSurfaceACC data.tSurfacePOT data.tRandomTRJ data.tRandomACC data.tRandomPOT;
     end
 end

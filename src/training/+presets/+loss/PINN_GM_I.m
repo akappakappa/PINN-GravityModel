@@ -1,12 +1,12 @@
-function [loss, gradients, state] = PINN_GM_I(net, Trj, Acc, ~, trainingMode)
+function [loss, gradients, state] = PINN_GM_I(net, TRJ, ACC, ~, trainingMode)
     % PINN_GM_I  Outdated loss function.
 
     % Forward
-    [PotPred, state] = forward(net, Trj);
-    AccPred          = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    [pPOT, state] = forward(net, TRJ);
+    pACC          = -dlgradient(sum(pPOT, 'all'), TRJ, EnableHigherDerivatives = true);
 
     % Loss
-    loss = mse(AccPred, Acc);
+    loss = mse(pACC, ACC);
 
     % Gradients
     if trainingMode
