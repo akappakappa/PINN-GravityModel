@@ -108,7 +108,6 @@ if options.verbose
 end
 
 % Save
-net = bestNet;
 save("net", "net");
 
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
