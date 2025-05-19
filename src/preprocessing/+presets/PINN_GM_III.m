@@ -36,7 +36,7 @@ function data = PINN_GM_III(data)
             cat(1, data.tSurfaceTRJ(:, 2), data.tRandomTRJ(:, 2)) .^ 2 + ...
             cat(1, data.tSurfaceTRJ(:, 3), data.tRandomTRJ(:, 3)) .^ 2   ...
         );
-        sPOT  = max(abs(cat(1, data.tSurfacePOT, data.tRandomPOT)) - abs(Ulf));
+        sPOT  = max(abs(cat(1, data.tSurfacePOT, data.tRandomPOT) - Ulf));
         sTIME = sqrt((sTRJ ^ 2) / sPOT);
         sACC  = sTRJ / (sTIME ^ 2);
         sMU   = sTRJ * sPOT;   % Would be: sTRJ ^ 3 / sTIME ^ 2, but can be simplified to sTRJ * sPOT
