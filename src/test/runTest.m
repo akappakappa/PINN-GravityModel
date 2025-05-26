@@ -4,6 +4,7 @@
 %     entrypoint for Testing
 
 metricsFolder   = "src/preprocessing/datastore/metrics/";
+headless        = batchStartupOptionUsed;
 
 % Preparations - Data
 data = mLoadData("src/preprocessing/metricsData.mat");
@@ -27,7 +28,7 @@ fprintf("Generalization metric [0R:100R] : %f\n", mean(GeneralizationMetric     
 fprintf("Surface metric                  : %f\n", mean(SurfaceMetric              ));
 
 % Plotting
-if batchStartupOptionUsed
+if headless
     return;
 end
 

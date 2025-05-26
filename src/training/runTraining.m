@@ -5,6 +5,7 @@
 
 executionEnvironment    = "auto";   % Leave as "auto" for GPU training if found, or set to "gpu" or "cpu"
 recoverFromCheckpoint   = false;    % Only set to true if you want to recover from a checkpoint on stopped training
+headless                = batchStartupOptionUsed;
 
 % Preparations - Data
 data      = tLoadData("src/preprocessing/trainingData.mat");
@@ -34,7 +35,7 @@ if recoverFromCheckpoint
 end
 
 % Preparations - Monitoring
-monitor = tMakeMonitor();
+monitor = tMakeMonitor(headless);
 if options.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
@@ -63,7 +64,7 @@ while epoch < options.numEpochs && ~monitor.Stop
         [loss, gradients, net.State]      = dlfeval(modelLoss, net, TRJ, ACC, POT, true);
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
         
-        if ~batchStartupOptionUsed
+        if ~headless
             recordMetrics(monitor, iteration, TrainingLoss = loss);
         end
         
@@ -74,7 +75,7 @@ while epoch < options.numEpochs && ~monitor.Stop
 
             [validationLoss, ~, ~] = dlfeval(modelLoss, net, TRJ, ACC, POT, false);
             
-            if ~batchStartupOptionUsed
+            if ~headless
                 recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
             end
 
@@ -95,7 +96,7 @@ while epoch < options.numEpochs && ~monitor.Stop
         end
 
         % Monitoring
-        if ~batchStartupOptionUsed
+        if ~headless
             updateInfo(monitor, ...
                 Epoch        = string(epoch) + " / " + string(options.numEpochs), ...
                 Iteration    = iteration                                        , ...
@@ -136,11 +137,11 @@ function data = tLoadData(path)
     data.validationPOT = dlarray(data.validationPOT, "BC");
 end
 
-function monitor = tMakeMonitor()
+function monitor = tMakeMonitor(headless)
     % TMAKEMONITOR  Create a training progress monitor.
     %   MONITOR = TMAKEMONITOR(HEADLESS) creates a training progress monitor, if HEADLESS=true it will create a mock monitor.
 
-    if ~batchStartupOptionUsed
+    if ~headless
         monitor = trainingProgressMonitor( ...
             Metrics = ["TrainingLoss", "ValidationLoss"]    , ...
             Info    = ["Epoch", "LearningRate", "Iteration"], ...
