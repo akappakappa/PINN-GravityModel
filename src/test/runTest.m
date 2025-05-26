@@ -1,6 +1,8 @@
 % This script tests the performance of the trained model.
+%
+% File: runTest.m
+%     entrypoint for Testing
 
-headless        = batchStartupOptionUsed;
 metricsFolder   = "src/preprocessing/datastore/metrics/";
 
 % Preparations - Data
@@ -25,7 +27,7 @@ fprintf("Generalization metric [0R:100R] : %f\n", mean(GeneralizationMetric     
 fprintf("Surface metric                  : %f\n", mean(SurfaceMetric              ));
 
 % Plotting
-if headless
+if batchStartupOptionUsed
     return;
 end
 

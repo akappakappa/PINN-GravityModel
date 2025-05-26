@@ -4,19 +4,16 @@
 %     entrypoint for Training
 
 executionEnvironment    = "auto";   % Leave as "auto" for GPU training if found, or set to "gpu" or "cpu"
-headless                = batchStartupOptionUsed;
 recoverFromCheckpoint   = false;    % Only set to true if you want to recover from a checkpoint on stopped training
-useGPU                  = ("auto" == executionEnvironment || "gpu" == executionEnvironment) && canUseGPU;
 
 % Preparations - Data
-data         = tLoadData("src/preprocessing/trainingData.mat");
-net          = dlupdate(@double, initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e)));
-modelLoss    = dlaccelerate(@presets.loss.PINN_GM_III);
-options      = presets.options.PINN_GM_III(data.params.split(1));
-if useGPU
-    net      = dlupdate(@gpuArray, net);
+data      = tLoadData("src/preprocessing/trainingData.mat");
+net       = dlupdate(@double, initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e)));
+modelLoss = dlaccelerate(@presets.loss.PINN_GM_III);
+options   = presets.options.PINN_GM_III(data.params.split(1));
+if ("auto" == executionEnvironment || "gpu" == executionEnvironment) && canUseGPU
+    net   = dlupdate(@gpuArray, net);
 end
-[tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, executionEnvironment);
 
 % Preparations - Loop
 epoch         = 0;     % Epoch counter
@@ -37,7 +34,7 @@ if recoverFromCheckpoint
 end
 
 % Preparations - Monitoring
-monitor = tMakeMonitor(headless);
+monitor = tMakeMonitor();
 if options.verbose
     fprintf("|========================================================================================|\n");
     fprintf("|  Epoch  |  Iteration  |  Time Elapsed  |  Mini-batch  |  Validation  |  Base Learning  |\n");
@@ -49,28 +46,38 @@ end
 start = tic;
 while epoch < options.numEpochs && ~monitor.Stop
     epoch = epoch + 1;
-    shuffle(tMBQ);
-    shuffle(vMBQ);
 
-    % Loop over mini-batches
-    while hasdata(tMBQ) && ~monitor.Stop
-        iteration                         = iteration + 1;
-        [TRJ, ACC, POT]                   = next(tMBQ);
+    % Shuffle training data
+    rIdxTrain     = randperm(data.params.split(1));
+    data.trainTRJ = data.trainTRJ(:, rIdxTrain);
+    data.trainACC = data.trainACC(:, rIdxTrain);
+    data.trainPOT = data.trainPOT(:, rIdxTrain);
+
+    numBatches = floor(data.params.split(1) / options.miniBatchSize);
+    for batchIdx = 1:numBatches
+        iteration = iteration + 1;
+
+        idxTrain        = (1:options.miniBatchSize) + (batchIdx - 1) * options.miniBatchSize;
+        [TRJ, ACC, POT] = deal(data.trainTRJ(:, idxTrain), data.trainACC(:, idxTrain), data.trainPOT(:, idxTrain));
+
         [loss, gradients, net.State]      = dlfeval(modelLoss, net, TRJ, ACC, POT, true);
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
         
-        if ~headless
+        if ~batchStartupOptionUsed
             recordMetrics(monitor, iteration, TrainingLoss = loss);
         end
         
         % Validation
-        if (1 == iteration || 0 == mod(iteration, options.numIterationsPerEpoch)) && hasdata(vMBQ) && ~monitor.Stop
-            [TRJ, ACC, POT]        = next(vMBQ);
+        if (1 == iteration || 0 == mod(iteration, options.numIterationsPerEpoch)) && ~monitor.Stop
+            rIdxValidation  = randperm(data.params.split(2), floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch);
+            [TRJ, ACC, POT] = deal(data.validationTRJ(:, rIdxValidation), data.validationACC(:, rIdxValidation), data.validationPOT(:, rIdxValidation));
+
             [validationLoss, ~, ~] = dlfeval(modelLoss, net, TRJ, ACC, POT, false);
             
-            if ~headless
+            if ~batchStartupOptionUsed
                 recordMetrics(monitor, iteration, ValidationLoss = validationLoss);
             end
+
             if options.verbose
                 D = duration(0, 0, toc(start), Format = "hh:mm:ss");
                 fprintf("| %7d | %11d | %14s | %12.4f | %12.4f | %15.4f |\n"    , ...
@@ -88,7 +95,7 @@ while epoch < options.numEpochs && ~monitor.Stop
         end
 
         % Monitoring
-        if ~headless
+        if ~batchStartupOptionUsed
             updateInfo(monitor, ...
                 Epoch        = string(epoch) + " / " + string(options.numEpochs), ...
                 Iteration    = iteration                                        , ...
@@ -119,55 +126,21 @@ function data = tLoadData(path)
     %   DATA = TLOADDATASTORE(PATH) loads the data from the specified path, shuffling the training and validation sets.
 
     data = load(path);
-    data.train      = shuffle(combine(      ...
-        arrayDatastore(data.trainTRJ)     , ...
-        arrayDatastore(data.trainACC)     , ...
-        arrayDatastore(data.trainPOT)       ...
-    ));
-    data.validation = shuffle(combine(      ...
-        arrayDatastore(data.validationTRJ), ...
-        arrayDatastore(data.validationACC), ...
-        arrayDatastore(data.validationPOT)  ...
-    ));
+
+    data.trainTRJ = dlarray(data.trainTRJ, "BC");
+    data.trainACC = dlarray(data.trainACC, "BC");
+    data.trainPOT = dlarray(data.trainPOT, "BC");
+
+    data.validationTRJ = dlarray(data.validationTRJ, "BC");
+    data.validationACC = dlarray(data.validationACC, "BC");
+    data.validationPOT = dlarray(data.validationPOT, "BC");
 end
 
-function [tMBQ, vMBQ] = tSetupMinibatchQueues(data, options, executionEnvironment)
-    % TSETUPMINIBATCHQUEUES  Setup the mini-batch queues for training and validation.
-    %   [TMBQ, VMBQ] = TSETUPMINIBATCHQUEUES(DATA, OPTIONS, EXECUTIONENVIRONMENT) sets up the mini-batch queues for training and validation, given OPTIONS and EXECUTIONENVIRONMENT.
-    
-    tMBQ = minibatchqueue(data.train                                           , ...
-        MiniBatchFcn      = @(TRJ, ACC, POT) preprocessMiniBatch(TRJ, ACC, POT), ...
-        MiniBatchSize     = options.miniBatchSize                              , ...
-        OutputEnvironment = executionEnvironment                               , ...
-        MiniBatchFormat   = 'BC'                                               , ...
-        OutputCast        = "double"                                             ...
-    );
-    
-    vMBQ = minibatchqueue(data.validation                                                                              , ...
-        MiniBatchFcn      = @(TRJ, ACC, POT) preprocessMiniBatch(TRJ, ACC, POT)                                        , ...
-        MiniBatchSize     = floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch, ...
-        OutputEnvironment = executionEnvironment                                                                       , ...
-        MiniBatchFormat   = 'BC'                                                                                       , ...
-        OutputCast        = "double"                                                                                     ...
-    );
-
-
-
-    function [TRJ, ACC, POT] = preprocessMiniBatch(TRJ, ACC, POT)
-        % PREPROCESSMINIBATCH  Preprocess the mini-batch data.
-        %   [TRJ, ACC, POT] = PREPROCESSMINIBATCH(TRJ, ACC, POT) preprocesses the mini-batch data.
-
-        TRJ = cat(1, TRJ{:});
-        ACC = cat(1, ACC{:});
-        POT = cat(1, POT{:});
-    end
-end
-
-function monitor = tMakeMonitor(headless)
+function monitor = tMakeMonitor()
     % TMAKEMONITOR  Create a training progress monitor.
     %   MONITOR = TMAKEMONITOR(HEADLESS) creates a training progress monitor, if HEADLESS=true it will create a mock monitor.
 
-    if ~headless
+    if ~batchStartupOptionUsed
         monitor = trainingProgressMonitor( ...
             Metrics = ["TrainingLoss", "ValidationLoss"]    , ...
             Info    = ["Epoch", "LearningRate", "Iteration"], ...

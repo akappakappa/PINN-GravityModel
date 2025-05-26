@@ -14,8 +14,8 @@ if batchStartupOptionUsed
 end
 
 DO_DATA_EXTRACTION   = false;
-DO_PREPROCESSING     = false;
-DO_TRAINING          = false;
+DO_PREPROCESSING     = true;
+DO_TRAINING          = true;
 DO_TESTING           = true;
 
 if true == DO_DATA_EXTRACTION

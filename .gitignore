@@ -4,6 +4,7 @@ Examples/
 src/preprocessing/trainingData.mat
 src/preprocessing/metricsData.mat
 src/training/net*.mat
+src/training/checkpoint.mat
 
 # Environment
 .vscode/
