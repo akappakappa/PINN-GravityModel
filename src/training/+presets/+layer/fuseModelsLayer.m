@@ -28,7 +28,7 @@ classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
             % Computes the potential at the given RADIUS, fusing the Neural Network and Low-Fidelity Analytic Model Potentials.
 
             refFusion         = 0;                                                       % 0R = start from the center of the asteroid
-            smoothFusion      = 0.5;                                                     % Transition smoothness
+            smoothFusion      = 0.1;                                                     % Transition smoothness
             weightLowFidelity = (1 + tanh(smoothFusion .* (Radius - refFusion))) ./ 2;   % Smooth addition of PotLF from 0R
             Potential         = PotNN + weightLowFidelity .* PotLF;
         end
