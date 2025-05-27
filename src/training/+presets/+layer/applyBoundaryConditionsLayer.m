@@ -2,6 +2,15 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
     % applyBoundaryConditionsLayer Applies Boundary Conditions to transition from the Fused Model to the Low-Fidelity Analytic Model.
     %   This layer transitions predictions from the Fused Model to the Low-Fidelity Analytic Model using a smooth transition around 10R.
 
+    properties
+        H           % Smooth transition function
+    end
+
+    properties (Learnable)
+        rref        % Reference radius for the model
+        smoothness  % Smoothness of the model transition
+    end
+
     methods
         function layer = applyBoundaryConditionsLayer(args)
             arguments
@@ -16,14 +25,15 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
+            layer.H           = @(x, k, r) (1 + tanh(k .* (x - r))) ./ 2;
+            layer.rref        = 10;
+            layer.smoothness  = 0.1;
         end
 
-        function Potential = predict(~, PotFused, PotLF, Radius)
+        function Potential = predict(layer, PotFused, PotLF, Radius)
             % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
 
-            refBounds     = 10;                                                      % 10R = max altitude of the training dataset
-            smoothBounds  = 0.1;                                                     % Transition smoothness
-            weightBounds  = (1 + tanh(smoothBounds .* (Radius - refBounds))) ./ 2;   % Smooth transition from Network to Boundary Conditions around 10R
+            weightBounds  = layer.H(Radius, layer.smoothness, layer.rref);
             weightNetwork = 1 - weightBounds;
             Potential     = weightNetwork .* PotFused + weightBounds .* PotLF;
         end
