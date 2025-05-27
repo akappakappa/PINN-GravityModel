@@ -24,11 +24,6 @@ function data = PINN_GM_III(data)
         vol            = 2525994603183.156;   % from 8k file in dataset https://github.com/MartinAstro/GravNN
         density        = 2670;                % https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=eros
         data.params.mu = g * vol * density;
-
-        % Eccentricity
-        a             = data.params.rMax;
-        b             = 3120;                      % Min Eros radius
-        data.params.e = sqrt(1 - b ^ 2 / a ^ 2);
     end
 
     function data = pNonDimensionalize(data)

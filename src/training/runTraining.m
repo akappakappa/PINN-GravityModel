@@ -9,7 +9,7 @@ headless                = batchStartupOptionUsed;
 
 % Preparations - Data
 data      = tLoadData("src/preprocessing/trainingData.mat");
-net       = dlupdate(@double, initialize(presets.network.PINN_GM_III(data.params.mu, data.params.e)));
+net       = dlupdate(@double, initialize(presets.network.PINN_GM_III(data.params)));
 modelLoss = dlaccelerate(@presets.loss.PINN_GM_III);
 options   = presets.options.PINN_GM_III(data.params.split(1));
 if ("auto" == executionEnvironment || "gpu" == executionEnvironment) && canUseGPU
