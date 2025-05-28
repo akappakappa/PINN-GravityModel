@@ -21,13 +21,8 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
-        end
-
-        function layer = initialize(layer, varargin)
-            % Initialize the layer with default values for rref and smoothness.
-
-            layer.rref       = 10;
-            layer.smoothness = 0.1;
+            layer.rref        = 10;
+            layer.smoothness  = 0.1;
         end
 
         function Potential = predict(layer, PotFused, PotLF, Radius)
