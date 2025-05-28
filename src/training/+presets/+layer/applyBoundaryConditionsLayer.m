@@ -22,7 +22,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
             layer.rref        = 10;
-            layer.smoothness  = 0.1;
+            layer.smoothness  = 0.5;
         end
 
         function Potential = predict(layer, PotFused, PotLF, Radius)
