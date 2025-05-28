@@ -2,7 +2,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
     % applyBoundaryConditionsLayer Applies Boundary Conditions to transition from the Fused Model to the Low-Fidelity Analytic Model.
     %   This layer transitions predictions from the Fused Model to the Low-Fidelity Analytic Model using a smooth transition around 10R.
 
-    properties (Learnable)
+    properties
         rref        % Reference radius for the model
         smoothness  % Smoothness of the model transition
     end
