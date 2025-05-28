@@ -3,7 +3,6 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
     %   This layer computes a low-fidelity analytic model based on the 'mu' physical parameter.
 
     properties
-        H           % Smooth transition function
         rref        % Reference radius for the model
         smoothness  % Smoothness of the model transition
         mu          % Physical parameter
@@ -25,7 +24,6 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
             layer.mu          = args.mu;
-            layer.H           = @(x, k, r) (1 + tanh(k .* (x - r))) ./ 2;
             layer.rref        = 0;
             layer.smoothness  = 0.5;
         end
@@ -34,7 +32,8 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
             % Computes the potential at the given RADIUS.
 
             Potential = -(layer.mu ./ Radius);
-            Potential = layer.H(Radius, layer.smoothness, layer.rref) .* Potential;
+            weight    = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+            Potential = weight .* Potential;
         end
     end
 end
