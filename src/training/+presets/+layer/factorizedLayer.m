@@ -29,19 +29,21 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
             layer.InputSize  = InputSize;
             layer.OutputSize = OutputSize;
             layer.Rank       = Rank;
+        end
 
+        function layer = initialize(layer, varargin)
             % Glorot initialization for full-rank matrix W
-            bound = sqrt(6 / (InputSize + OutputSize));
-            Z     = 2 * rand([OutputSize, InputSize]) - 1;
+            bound = sqrt(6 / (layer.InputSize + layer.OutputSize));
+            Z     = 2 * rand([layer.OutputSize, layer.InputSize]) - 1;
             W     = bound * Z;
 
             % Spectral initialization for W1 and W2
-            [U, S, V] = svds(W, Rank);
+            [U, S, V] = svds(W, layer.Rank);
             layer.W1  = dlarray(U * sqrt(S));
             layer.W2  = dlarray(sqrt(S) * V');
 
             % Bias initialization
-            layer.Bias = dlarray(zeros(OutputSize, 1));
+            layer.Bias = dlarray(zeros(layer.OutputSize, 1));
         end
         
         function Z = predict(layer, X)

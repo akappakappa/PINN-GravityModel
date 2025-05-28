@@ -8,7 +8,9 @@ classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.F
     end
     
     properties
-        Omega0   % Frequency parameter
+        InputSize    % Size of the input layer
+        OutputSize   % Size of the output layer
+        Omega0       % Frequency parameter
     end
     
     methods
@@ -22,17 +24,21 @@ classdef sirenLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.F
             end
             % Construct the layer, performing Glorot initialization for weights and setting the frequency parameter Omega0.
 
-            layer.Name   = args.Name;
-            layer.Omega0 = Omega0;
+            layer.Name       = args.Name;
+            layer.InputSize  = InputSize;
+            layer.OutputSize = OutputSize;
+            layer.Omega0     = Omega0;
+        end
 
+        function layer = initialize(layer, varargin)
             % Glorot initialization
-            bound = sqrt(6 / (InputSize * Omega0 ^ 2));
-            Z     = 2 * rand([OutputSize, InputSize]) - 1;
-            W     = Omega0 * bound * Z;
+            bound = sqrt(6 / (layer.InputSize * layer.Omega0 ^ 2));
+            Z     = 2 * rand([layer.OutputSize, layer.InputSize]) - 1;
+            W     = layer.Omega0 * bound * Z;
 
             % Layer properties
             layer.Weights = dlarray(W);
-            layer.Bias    = dlarray(zeros(OutputSize, 1));
+            layer.Bias    = dlarray(zeros(layer.OutputSize, 1));
         end
         
         function Z = predict(layer, X)

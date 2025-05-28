@@ -21,16 +21,21 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
-            layer.rref        = 10;
-            layer.smoothness  = 0.1;
+        end
+
+        function layer = initialize(layer, varargin)
+            % Initialize the layer with default values for rref and smoothness.
+
+            layer.rref       = 10;
+            layer.smoothness = 0.1;
         end
 
         function Potential = predict(layer, PotFused, PotLF, Radius)
             % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
 
-            weightBounds  = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
-            weightNetwork = 1 - weightBounds;
-            Potential     = weightNetwork .* PotFused + weightBounds .* PotLF;
+            weightBounds     = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+            weightNetwork    = 1 - weightBounds;
+            Potential        = weightNetwork .* PotFused + weightBounds .* PotLF;
         end
     end
 end
