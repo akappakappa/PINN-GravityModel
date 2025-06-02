@@ -49,16 +49,15 @@ actNN               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 
 actLF               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'analyticModelLayer'   );
 actFuse             = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'fuseModelsLayer'      );
 [sortedRadius, idx] = sort(extractdata(GeneralizationRadius));
-sortedNN            = extractdata(actNN(idx));
-sortedLF            = extractdata(actLF(idx));
-sortedFuse          = extractdata(actFuse(idx));
+sortedNN            = abs(extractdata(actNN(idx)  ));
+sortedLF            = abs(extractdata(actLF(idx)  ));
+sortedFuse          = abs(extractdata(actFuse(idx)));
 
 % Plotting potentials
 figure;
 hold on;
-semilogy(sortedRadius, abs(sortedNN  ), '.', 'DisplayName', 'PotNN'      );
-semilogy(sortedRadius, abs(sortedLF  ), '.', 'DisplayName', 'PotAnalytic');
-semilogy(sortedRadius, abs(sortedFuse), '.', 'DisplayName', 'PotFused'   );
+semilogy(sortedRadius, sortedLF  , '.', 'DisplayName', 'PotAnalytic');
+semilogy(sortedRadius, sortedFuse, '.', 'DisplayName', 'PotFused'   );
 
 set(gca, 'YScale', 'log');
 xlim([0, 20]);
@@ -66,7 +65,7 @@ grid on;
 xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
 xlabel('Distance (R)');
 ylabel('Potential');
-title('Generalization: Potential Predictions within the Network');
+title('Generalization Potential: Analytic vs Fused');
 legend('show');
 
 % NN vs Analytic (Fusion)
@@ -79,12 +78,12 @@ grid on;
 xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
 xlabel('Distance (R)');
 ylabel('Absolute Difference');
-title('Generalization: Difference between NN and Analytic Potential');
+title('Generalization Potential: Difference between NN and Analytic Potential');
 legend('show');
 
 % Fused vs Analytic (Boundary)
 figure;
-semilogy(sortedRadius, abs(sortedFuse - sortedLF), '.', 'DisplayName', 'Fused - Analytic');
+semilogy(sortedRadius, sortedNN, '.', 'DisplayName', 'NN (= Fused - Analytic)');
 
 set(gca, 'YScale', 'log');
 xlim([0, 20]);
@@ -92,7 +91,7 @@ grid on;
 xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
 xlabel('Distance (R)');
 ylabel('Absolute Difference');
-title('Generalization: Difference between Fused and Analytic Potential');
+title('Generalization Potential: NN');
 legend('show');
 
 return;
