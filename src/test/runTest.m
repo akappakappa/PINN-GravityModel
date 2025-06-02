@@ -8,7 +8,7 @@ headless        = batchStartupOptionUsed;
 
 % Preparations - Data
 data = mLoadData("src/preprocessing/metricsData.mat");
-net  = load("src/training/net.mat").net;
+net  = load("src/training/net_gm3.mat").net;
 
 % Compute metrics
 % ---------------------------------------------------------- | Preset func -- | NN | Trajectory Data ------------- | Acceleration Data ----------- | Potential Data -------------- |
@@ -34,14 +34,66 @@ end
 
 % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
 figure;
-plot(GeneralizationRadius, GeneralizationMetric, '.', 'DisplayName', 'Generalization');
+semilogy(extractdata(GeneralizationRadius), extractdata(GeneralizationMetric), '.', 'DisplayName', 'Generalization');
+
 set(gca, 'YScale', 'log');
-xlabel('Distance (R)');
 xlim([0, 20]);
+grid on;
+xlabel('Distance (R)');
 ylabel('Mean Percent Error (MPE)');
 title('Generalization: MPE vs. Distance (R)');
 legend('show'); 
+
+% Predicting potentials within the network
+actNN               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'scaleNNPotentialLayer');
+actLF               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'analyticModelLayer'   );
+actFuse             = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'fuseModelsLayer'      );
+[sortedRadius, idx] = sort(extractdata(GeneralizationRadius));
+sortedNN            = extractdata(actNN(idx));
+sortedLF            = extractdata(actLF(idx));
+sortedFuse          = extractdata(actFuse(idx));
+
+% Plotting potentials
+figure;
+hold on;
+semilogy(sortedRadius, abs(sortedNN  ), '.', 'DisplayName', 'PotNN'      );
+semilogy(sortedRadius, abs(sortedLF  ), '.', 'DisplayName', 'PotAnalytic');
+semilogy(sortedRadius, abs(sortedFuse), '.', 'DisplayName', 'PotFused'   );
+
+set(gca, 'YScale', 'log');
+xlim([0, 20]);
 grid on;
+xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
+xlabel('Distance (R)');
+ylabel('Potential');
+title('Generalization: Potential Predictions within the Network');
+legend('show');
+
+% NN vs Analytic (Fusion)
+figure;
+semilogy(sortedRadius, abs(sortedNN - sortedLF), '.', 'DisplayName', 'NN - Analytic');
+
+set(gca, 'YScale', 'log');
+xlim([0, 20]);
+grid on;
+xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
+xlabel('Distance (R)');
+ylabel('Absolute Difference');
+title('Generalization: Difference between NN and Analytic Potential');
+legend('show');
+
+% Fused vs Analytic (Boundary)
+figure;
+semilogy(sortedRadius, abs(sortedFuse - sortedLF), '.', 'DisplayName', 'Fused - Analytic');
+
+set(gca, 'YScale', 'log');
+xlim([0, 20]);
+grid on;
+xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
+xlabel('Distance (R)');
+ylabel('Absolute Difference');
+title('Generalization: Difference between Fused and Analytic Potential');
+legend('show');
 
 return;
 
