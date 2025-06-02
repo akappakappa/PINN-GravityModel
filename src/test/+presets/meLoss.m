@@ -1,8 +1,10 @@
-function [loss, Radius] = meLoss(net, Trj, Acc, ~)
+function [loss, Radius] = meLoss(net, TRJ, ACC, ~)
     % Forward
-    [PotPred, Radius] = forward(net, Trj);
-    AccPred           = -dlgradient(sum(PotPred, 'all'), Trj, EnableHigherDerivatives = true);
+    [pPOT, Radius] = forward(net, TRJ);
+    pACC           = -dlgradient(sum(pPOT, 'all'), TRJ, EnableHigherDerivatives = true);
 
     % Loss
-    loss = vecnorm(Acc - AccPred);
+    AbsoluteLoss = vecnorm(ACC - pACC);
+    
+    loss = AbsoluteLoss;
 end
