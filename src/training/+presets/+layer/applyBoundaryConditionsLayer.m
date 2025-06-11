@@ -46,8 +46,8 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             rEnd                        = layer.rref + layer.smoothness;
             mask                        = Radius >= rStart & Radius <= rEnd;
             x                           = (Radius(mask) - rStart) / (rEnd - rStart);
-            %weightBounds(mask)          = x .^ 2 .* (3 - 2 .* x);
-            weightBounds(mask)          = x .^ 3 .* (x .* (6 .* x - 15) + 10);
+            weightBounds(mask)          = x .^ 2 .* (3 - 2 .* x);
+            %weightBounds(mask)          = x .^ 3 .* (x .* (6 .* x - 15) + 10);
             weightBounds(Radius > rEnd) = 1;
 
             weightNetwork    = 1 - weightBounds;
