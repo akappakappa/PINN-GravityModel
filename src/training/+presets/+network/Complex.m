@@ -1,4 +1,4 @@
-function net = FullyConnected_Siren(params)
+function net = Complex(params)
     net = dlnetwork();
 
     % Define the feature engineering layers
@@ -9,15 +9,13 @@ function net = FullyConnected_Siren(params)
         )
     ];
 
-    % Define the NN layers: 6 * (FullyConnected + SIREN) + FullyConnected
+    % Define the NN layers: 6 * (FullyConnected + GELU) + FullyConnected
     layersNN = [];
     depthNN  = 7;
-    % ------------ | Prev - | (either) Layer / (or) Layer + Activation ---------------------------------------------------------- |
-    layersNN     = [layersNN, presets.layer.sirenLayer(5, 32, 1 , "Name", "siren1")                                               ];
-    for i = 2:depthNN - 1
-        layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))                                  ];
+    for i = 1:depthNN - 1
+        layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
     end
-    layersNN     = [layersNN,      fullyConnectedLayer(1        , "Name", sprintf("fc%d", depthNN), "WeightsInitializer", "zeros")];
+    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
@@ -36,7 +34,7 @@ function net = FullyConnected_Siren(params)
     ));
 
     % Connect NN layers
-    net = connectLayers(net, "cart2sphLayer/Spherical", "siren1/in"                         );
+    net = connectLayers(net, "cart2sphLayer/Spherical", "fc1/in"                         );
     net = connectLayers(net, "fc7"                    , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius"   , "scaleNNPotentialLayer/Radius"   );
 

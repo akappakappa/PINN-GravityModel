@@ -58,6 +58,7 @@ figure;
 hold on;
 semilogy(sortedRadius, sortedLF  , '.', 'DisplayName', 'PotAnalytic');
 semilogy(sortedRadius, sortedFuse, '.', 'DisplayName', 'PotFused'   );
+semilogy(sortedRadius, sortedNN  , '.', 'DisplayName', 'PotNN'      );
 
 set(gca, 'YScale', 'log');
 xlim([0, 20]);

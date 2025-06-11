@@ -7,7 +7,7 @@ classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
             arguments
                 args.Name        = "fuseModelsLayer";
                 args.Description = "Fuses the Neural Network and Low-Fidelity Analytic Model Potentials";
-                args.InputNames  = ["PotNN", "PotLF", "Radius"];
+                args.InputNames  = ["PotNN", "PotLF"];
                 args.OutputNames = "Potential";
             end
             % Construct the layer.

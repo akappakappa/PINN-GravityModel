@@ -19,7 +19,7 @@ function net = MixedFCActivations(params)
     for i = 4:depthNN - 1
         layersNN = [layersNN, presets.layer.sirenLayer(32, 32, 1, "Name", sprintf("siren%d", i))                                           ];
     end
-    layersNN     = [layersNN,      fullyConnectedLayer(1        , "Name", sprintf("fc%d", depthNN))                                        ];
+    layersNN     = [layersNN,      fullyConnectedLayer(1        , "Name", sprintf("fc%d", depthNN)), "WeightsInitializer", "zeros"         ];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

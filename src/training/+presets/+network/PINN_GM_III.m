@@ -15,7 +15,7 @@ function net = PINN_GM_III(params)
     for i = 1:depthNN - 1
         layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
     end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN))];
+    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN), "WeightsInitializer", "zeros")];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);

@@ -28,7 +28,28 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
         function Potential = predict(layer, PotFused, PotLF, Radius)
             % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
 
-            weightBounds     = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+            % Tanh
+            %weightBounds     = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+
+            % Sigmoid
+            %weightBounds     = 1 ./ (1 + exp(-layer.smoothness .* (Radius - layer.rref)));
+
+            % Ramp
+            %weightBounds              = zeros(size(Radius));
+            %idxLinear                 = Radius >= 8 & Radius <= 12;
+            %weightBounds(idxLinear)   = (Radius(idxLinear) - 8) / 4;
+            %weightBounds(Radius > 12) = 1;
+
+            % Smoothstep
+            weightBounds                = zeros(size(Radius));
+            rStart                      = layer.rref - 1 / layer.smoothness ^ 2;
+            rEnd                        = layer.rref + 1 / layer.smoothness ^ 2;
+            mask                        = Radius >= rStart & Radius <= rEnd;
+            x                           = (Radius(mask) - rStart) / (rEnd - rStart);
+            %weightBounds(mask)          = x .^ 2 .* (3 - 2 .* x);
+            weightBounds(mask)          = x .^ 3 .* (x .* (6 .* x - 15) + 10);
+            weightBounds(Radius > rEnd) = 1;
+
             weightNetwork    = 1 - weightBounds;
             Potential        = weightNetwork .* PotFused + weightBounds .* PotLF;
         end
