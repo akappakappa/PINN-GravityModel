@@ -21,8 +21,8 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
-            layer.rref        = 10;
-            layer.smoothness  = 0.5;
+            layer.rref        = 13;
+            layer.smoothness  = 4;
         end
 
         function Potential = predict(layer, PotFused, PotLF, Radius)
@@ -42,8 +42,8 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
 
             % Smoothstep
             weightBounds                = zeros(size(Radius));
-            rStart                      = layer.rref - 1 / layer.smoothness ^ 2;
-            rEnd                        = layer.rref + 1 / layer.smoothness ^ 2;
+            rStart                      = layer.rref - layer.smoothness;
+            rEnd                        = layer.rref + layer.smoothness;
             mask                        = Radius >= rStart & Radius <= rEnd;
             x                           = (Radius(mask) - rStart) / (rEnd - rStart);
             %weightBounds(mask)          = x .^ 2 .* (3 - 2 .* x);
