@@ -38,8 +38,8 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
 
             % Smoothstep
             %weight                = zeros(size(Radius));
-            %rStart                = layer.rref - 1 / layer.smoothness ^ 2;
-            %rEnd                  = layer.rref + 1 / layer.smoothness ^ 2;
+            %rStart                = layer.rref - layer.smoothness;
+            %rEnd                  = layer.rref + layer.smoothness;
             %mask                  = Radius >= rStart & Radius <= rEnd;
             %x                     = (Radius(mask) - rStart) / (rEnd - rStart);
             %%weight(mask)          = x .^ 2 .* (3 - 2 .* x);
