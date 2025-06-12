@@ -9,13 +9,18 @@ function net = Complex(params)
         )
     ];
 
-    % Define the NN layers: 6 * (FullyConnected + GELU) + FullyConnected
+    % Define the NN layers
     layersNN = [];
     depthNN  = 7;
-    for i = 1:depthNN - 1
+    for i = 1:3
         layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
     end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN))];
+    layersNN     = [layersNN, fullyConnectedLayer(32 , "Name", sprintf("fc4"))];
+    layersNN     = [layersNN, additionLayer(2, "Name", sprintf("add1")), geluLayer("Name", sprintf("act4"))];
+    layersNN     = [layersNN, fullyConnectedLayer(32 , "Name", sprintf("fc5")), geluLayer("Name", sprintf("act5"))];
+    layersNN     = [layersNN, fullyConnectedLayer(32 , "Name", sprintf("fc6"))];
+    layersNN     = [layersNN, additionLayer(2, "Name", sprintf("add2")), geluLayer("Name", sprintf("act6"))];
+    layersNN     = [layersNN, fullyConnectedLayer(1, "Name", sprintf("fc%d", depthNN))];
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
@@ -53,4 +58,8 @@ function net = Complex(params)
     % Radius Identity Layer: output radius for loss component
     net = addLayers(net, identityLayer("Name", "RadiusIdentity"));
     net = connectLayers(net, "cart2sphLayer/Radius", "RadiusIdentity");
+
+    % Connect Additions Layers for skip connections
+    net = connectLayers(net, "act1", "add1/in2");
+    net = connectLayers(net, "act4", "add2/in2");
 end
