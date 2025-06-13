@@ -22,12 +22,11 @@ function net = Convolutional(params)
     layersNN     = [layersNN, functionLayer(@reshapeBackFromConv, "Name",  sprintf("rs2"), 'Formattable', true)];
     layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN), "WeightsInitializer", "zeros")];
     
-    net = imagePretrainedNetwork("resnet18",Weights="none");
-    
+    %net = imagePretrainedNetwork("resnet18",Weights="none");
 
     % Add layers
     net = addLayers(net, layersFeatureEngineering);
-    %net = addLayers(net, layersNN);
+    net = addLayers(net, layersNN);
     net = addLayers(net, presets.layer.scaleNNPotentialLayer( ...
         "Name", "scaleNNPotentialLayer"       , "InputNames", ["Potential", "Radius"]        , "OutputName", "Potential" ...
     ));
