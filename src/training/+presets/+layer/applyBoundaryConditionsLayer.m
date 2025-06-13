@@ -21,7 +21,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
-            layer.rref        = 13;
+            layer.rref        = 14;
             layer.smoothness  = 4;
         end
 
