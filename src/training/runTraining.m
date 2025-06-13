@@ -9,7 +9,8 @@ headless                = batchStartupOptionUsed;
 
 % Preparations - Data
 data      = tLoadData("src/preprocessing/trainingData.mat");
-net       = dlupdate(@double, initialize(presets.network.PINN_GM_III(data.params)));
+net       = presets.network.Routed(data.params);
+net       = dlupdate(@double, initialize(net));
 modelLoss = dlaccelerate(@presets.loss.PINN_GM_III);
 options   = presets.options.PINN_GM_III(data.params.split(1));
 clipGrad  = isfield(options, "gradientThresholdMethod") && ~isempty(options.gradientThresholdMethod);
