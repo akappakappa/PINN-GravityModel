@@ -32,15 +32,8 @@ classdef rbfLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.For
         end
         
         function Z = predict(layer, X)
-            % Computes the output of the layer using the RBF activation function.
-            %cSize = size(layer.Centers, 2);
-            %Dists = dlarray(zeros(cSize, size(X, 2)), "CB");
-            %for i = 1:cSize
-            %    Dists(i, :) = sum((layer.Centers(:, i) - X) .^ 2) .^ 0.5 .* layer.Bias(i);
-            %end
-            %Z = exp(-Dists .^2);
-
-            % ||x-c||^2 = ||x||^2 + ||c||^2 - 2(x*c)
+            % Computes the output of the layer using the RBF activation function, as ||x-c||^2 = ||x||^2 + ||c||^2 - 2(x*c).
+            
             C2    = sum(layer.Centers .^ 2, 1);
             X2    = sum(stripdims(X) .^ 2, 1);
             XC    = stripdims(X)' * layer.Centers;

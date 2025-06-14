@@ -7,11 +7,11 @@ classdef sineLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Fo
     end
 
     methods
-        function layer = sineLayer(args)
+        function layer = sineLayer(Omega0, args)
             arguments
+                Omega0
                 args.Name        = "sineLayer";
                 args.Description = "Sine activation layer";
-                args.Omega0      = 30;
             end
             
             layer.Name        = args.Name;
