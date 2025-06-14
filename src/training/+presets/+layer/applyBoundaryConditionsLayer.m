@@ -28,6 +28,9 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
         function Potential = predict(layer, PotFused, PotLF, Radius)
             % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
 
+            % GELU
+            %weightBounds     = (1 + erf(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+
             % Tanh
             %weightBounds     = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
 
