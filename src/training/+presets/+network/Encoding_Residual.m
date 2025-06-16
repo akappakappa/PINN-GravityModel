@@ -1,4 +1,4 @@
-function net = KKLatest(params)
+function net = Encoding_Residual(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -10,38 +10,40 @@ function net = KKLatest(params)
 
     % Learning Layers
     layersNN = [
+        fullyConnectedLayer(32, "Name", "enc1")
+        geluLayer("Name", "actenc1")
+        fullyConnectedLayer(32, "Name", "enc2")
+        geluLayer("Name", "actenc2")
+        ...
         fullyConnectedLayer(32, "Name", "fc1")
         geluLayer("Name", "act1")
-        ...
+        additionLayer(2, "Name", "add1")
         fullyConnectedLayer(32, "Name", "fc2")
         geluLayer("Name", "act2")
-        additionLayer(2, "Name", "add12")
-        ...
+        additionLayer(2, "Name", "add2")
         fullyConnectedLayer(32, "Name", "fc3")
         geluLayer("Name", "act3")
-        additionLayer(2, "Name", "add13")
-        ...
+        additionLayer(2, "Name", "add3")
         fullyConnectedLayer(32, "Name", "fc4")
         geluLayer("Name", "act4")
-        additionLayer(2, "Name", "add14")
-        ...
+        additionLayer(2, "Name", "add4")
         fullyConnectedLayer(32, "Name", "fc5")
         geluLayer("Name", "act5")
-        additionLayer(2, "Name", "add15")
-        ...
+        additionLayer(2, "Name", "add5")
         fullyConnectedLayer(32, "Name", "fc6")
         geluLayer("Name", "act6")
-        additionLayer(2, "Name", "add16")
+        additionLayer(2, "Name", "add6")
         ...
         fullyConnectedLayer(1, "Name", "final")
     ];
     net = addLayers(net, layersNN);
-    net = connectLayers(net, "cart2sphLayer/Spherical", "fc1");
-    net = connectLayers(net, "act1", "add12/in2");
-    net = connectLayers(net, "act1", "add13/in2");
-    net = connectLayers(net, "act1", "add14/in2");
-    net = connectLayers(net, "act1", "add15/in2");
-    net = connectLayers(net, "act1", "add16/in2");
+    net = connectLayers(net, "cart2sphLayer/Spherical", "enc1");
+    net = connectLayers(net, "actenc2", "add1/in2");
+    net = connectLayers(net, "actenc2", "add2/in2");
+    net = connectLayers(net, "actenc2", "add3/in2");
+    net = connectLayers(net, "actenc2", "add4/in2");
+    net = connectLayers(net, "actenc2", "add5/in2");
+    net = connectLayers(net, "actenc2", "add6/in2");
 
     % Postprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
@@ -63,8 +65,4 @@ function net = KKLatest(params)
     % Extra Outputs
     net = addLayers(net, identityLayer("Name", "RadiusIdentity"));
     net = connectLayers(net, "cart2sphLayer/Radius", "RadiusIdentity");
-
-    if false
-        error("KKLatest: WIP");
-    end
 end
