@@ -1,4 +1,11 @@
-function [loss, gradients, state] = PINN_GM_I(net, TRJ, ACC, ~, trainingMode)
+function [loss, gradients, state] = PINN_GM_I(net, TRJ, ACC, ~, args)
+    arguments
+        net
+        TRJ
+        ACC
+        ~
+        args.trainingMode = true;
+    end
     % PINN_GM_I  Outdated loss function.
 
     % Forward
@@ -9,7 +16,7 @@ function [loss, gradients, state] = PINN_GM_I(net, TRJ, ACC, ~, trainingMode)
     loss = mse(pACC, ACC);
 
     % Gradients
-    if trainingMode
+    if args.trainingMode
         gradients = dlgradient(loss, net.Learnables);
     else
         gradients = [];

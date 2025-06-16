@@ -63,7 +63,7 @@ while epoch < options.numEpochs && ~monitor.Stop
         idxTrain        = (1:options.miniBatchSize) + (batchIdx - 1) * options.miniBatchSize;
         [TRJ, ACC, POT] = deal(data.trainTRJ(:, idxTrain), data.trainACC(:, idxTrain), data.trainPOT(:, idxTrain));
 
-        [loss, gradients, net.State]      = dlfeval(modelLoss, net, TRJ, ACC, POT, true);
+        [loss, gradients, net.State]      = dlfeval(modelLoss, net, TRJ, ACC, POT, "trainingMode", true);
         if clipGrad
             gradients = dlupdate(@(g) options.gradientThresholdMethod(g, options.gradientThreshold), gradients);
         end
@@ -78,7 +78,7 @@ while epoch < options.numEpochs && ~monitor.Stop
             rIdxValidation  = randperm(data.params.split(2), floor(data.params.split(2) / options.numIterationsPerEpoch) * options.numIterationsPerEpoch);
             [TRJ, ACC, POT] = deal(data.validationTRJ(:, rIdxValidation), data.validationACC(:, rIdxValidation), data.validationPOT(:, rIdxValidation));
 
-            [validationLoss, ~, ~] = dlfeval(modelLoss, net, TRJ, ACC, POT, false);
+            [validationLoss, ~, ~] = dlfeval(modelLoss, net, TRJ, ACC, POT, "trainingMode", false);
             
             if ~headless
                 recordMetrics(monitor, iteration, ValidationLoss = validationLoss);

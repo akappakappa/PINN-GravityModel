@@ -1,56 +1,51 @@
 function net = PINN_GM_III(params)
     net = dlnetwork();
 
-    % Define the feature engineering layers
+    % Feature Engineering
     layersFeatureEngineering = [ ...
         featureInputLayer(3, "Name", "featureinput")
-        presets.layer.cart2sphLayer( ...
-            "Name", "cart2sphLayer", "InputName", "Trajectory", "OutputNames", ["Spherical", "Radius"] ...
-        )
+        presets.layer.cart2sphLayer()
     ];
-
-    % Define the NN layers: 6 * (FullyConnected + GELU) + FullyConnected
-    layersNN = [];
-    depthNN  = 7;
-    for i = 1:depthNN - 1
-        layersNN = [layersNN, fullyConnectedLayer(32, "Name", sprintf("fc%d", i)), geluLayer("Name", sprintf("act%d", i))];
-    end
-    layersNN     = [layersNN, fullyConnectedLayer(1 , "Name", sprintf("fc%d", depthNN), "WeightsInitializer", "zeros")];
-
-    % Add layers
     net = addLayers(net, layersFeatureEngineering);
+
+    % Learning
+    layersNN = [
+        fullyConnectedLayer(32, "Name", "fc1")
+        geluLayer("Name", "act1")
+        fullyConnectedLayer(32, "Name", "fc2")
+        geluLayer("Name", "act2")
+        fullyConnectedLayer(32, "Name", "fc3")
+        geluLayer("Name", "act3")
+        fullyConnectedLayer(32, "Name", "fc4")
+        geluLayer("Name", "act4")
+        fullyConnectedLayer(32, "Name", "fc5")
+        geluLayer("Name", "act5")
+        fullyConnectedLayer(32, "Name", "fc6")
+        geluLayer("Name", "act6")
+        ...
+        fullyConnectedLayer(1 , "Name", "fcfinal", "WeightsInitializer", "zeros")
+    ];
     net = addLayers(net, layersNN);
-    net = addLayers(net, presets.layer.scaleNNPotentialLayer( ...
-        "Name", "scaleNNPotentialLayer"       , "InputNames", ["Potential", "Radius"]        , "OutputName", "Potential" ...
-    ));
-    net = addLayers(net, presets.layer.analyticModelLayer("mu", params.mu, ...
-        "Name", "analyticModelLayer"          , "InputName" , "Radius"                       , "OutputName", "Potential" ...
-    ));
-    net = addLayers(net, presets.layer.fuseModelsLayer( ...
-        "Name", "fuseModelsLayer"             , "InputNames", ["PotNN", "PotLF"]             , "OutputName", "Potential" ...
-    ));
-    net = addLayers(net, presets.layer.applyBoundaryConditionsLayer( ...
-        "Name", "applyBoundaryConditionsLayer", "InputNames", ["PotFused", "PotLF", "Radius"], "OutputName", "Potential" ...
-    ));
+    net = connectLayers(net, "cart2sphLayer/Spherical", "fc1");
 
-    % Connect NN layers
-    net = connectLayers(net, "cart2sphLayer/Spherical", "fc1/in"                         );
-    net = connectLayers(net, "fc7"                    , "scaleNNPotentialLayer/Potential");
-    net = connectLayers(net, "cart2sphLayer/Radius"   , "scaleNNPotentialLayer/Radius"   );
+    % Posprocessing
+    net = addLayers(net, presets.layer.scaleNNPotentialLayer());
+    net = connectLayers(net, "fcfinal"             , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "cart2sphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    % Connect Low-Fidelity Analytic Model layers
-    net = connectLayers(net, "cart2sphLayer/Radius", "analyticModelLayer/Radius");
+    net = addLayers(net, presets.layer.analyticModelLayer("mu", params.mu));
+    net = connectLayers(net, "cart2sphLayer/Radius", "analyticModelLayer");
 
-    % Connect Fusion layers
-    net = connectLayers(net, "scaleNNPotentialLayer/Potential", "fuseModelsLayer/PotNN" );
-    net = connectLayers(net, "analyticModelLayer/Potential"   , "fuseModelsLayer/PotLF" );
+    net = addLayers(net, presets.layer.fuseModelsLayer());
+    net = connectLayers(net, "scaleNNPotentialLayer", "fuseModelsLayer/PotNN");
+    net = connectLayers(net, "analyticModelLayer"   , "fuseModelsLayer/PotLF");
 
-    % Connect Boundary Conditions layers
-    net = connectLayers(net, "fuseModelsLayer/Potential"   , "applyBoundaryConditionsLayer/PotFused");
-    net = connectLayers(net, "analyticModelLayer/Potential", "applyBoundaryConditionsLayer/PotLF"   );
-    net = connectLayers(net, "cart2sphLayer/Radius"        , "applyBoundaryConditionsLayer/Radius"  );
-
-    % Radius Identity Layer: output radius for loss component
-    net = addLayers(net, identityLayer("Name", "RadiusIdentity"));
-    net = connectLayers(net, "cart2sphLayer/Radius", "RadiusIdentity");
+    net = addLayers(net, presets.layer.applyBoundaryConditionsLayer());
+    net = connectLayers(net, "fuseModelsLayer"     , "applyBoundaryConditionsLayer/PotFused");
+    net = connectLayers(net, "analyticModelLayer"  , "applyBoundaryConditionsLayer/PotLF"   );
+    net = connectLayers(net, "cart2sphLayer/Radius", "applyBoundaryConditionsLayer/Radius"  );
+    
+    % Extra Output
+    net = addLayers(net, identityLayer("Name", "RadiusOutput"));
+    net = connectLayers(net, "cart2sphLayer/Radius", "RadiusOutput");
 end
