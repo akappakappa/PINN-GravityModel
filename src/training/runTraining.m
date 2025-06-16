@@ -13,7 +13,6 @@ net       = presets.network.PINN_GM_III(data.params);
 net       = dlupdate(@double, initialize(net));
 modelLoss = dlaccelerate(@presets.loss.PINN_GM_III);
 options   = presets.options.PINN_GM_III(data.params.split(1));
-clipGrad  = isfield(options, "gradientThresholdMethod") && ~isempty(options.gradientThresholdMethod);
 if ("auto" == executionEnvironment || "gpu" == executionEnvironment) && canUseGPU
     net   = dlupdate(@gpuArray, net);
 end
@@ -64,9 +63,6 @@ while epoch < options.numEpochs && ~monitor.Stop
         [TRJ, ACC, POT] = deal(data.trainTRJ(:, idxTrain), data.trainACC(:, idxTrain), data.trainPOT(:, idxTrain));
 
         [loss, gradients, net.State]      = dlfeval(modelLoss, net, TRJ, ACC, POT, "trainingMode", true);
-        if clipGrad
-            gradients = dlupdate(@(g) options.gradientThresholdMethod(g, options.gradientThreshold), gradients);
-        end
         [net, averageGrad, averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, options.learnRate);
         
         if ~headless
