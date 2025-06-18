@@ -10,7 +10,8 @@ function net = FNO(params)
 
     % Learning
     layersNN = [
-        reshapeLayer([1, 5], "Name", "nnin", "OperationDimension", "spatial-channel")
+        %reshapeLayer([1, 5], "Name", "nnin", "OperationDimension", "spatial-channel")
+        functionLayer(@(X) dlarray(reshape(X, [1, 5, size(X, 2)]), "SCB"), "Name", "nnin", "Acceleratable", true, "Formattable", true)
         convolution1dLayer(1, 32)
         ...
         presets.layer.fnoLayer(32, 2, "Name", "fno1")
@@ -19,7 +20,8 @@ function net = FNO(params)
         geluLayer()
         ...
         convolution1dLayer(1, 1, "WeightsInitializer", "zeros")
-        reshapeLayer(1, "Name", "nnout", "OperationDimension", "spatial-channel", "Name", "nnout")
+        %reshapeLayer(1, "Name", "nnout", "OperationDimension", "spatial-channel", "Name", "nnout")
+        functionLayer(@(X) dlarray(reshape(X, [1, size(X, 3)]), "CB"), "Name", "nnout", "Acceleratable", true, "Formattable", true)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
