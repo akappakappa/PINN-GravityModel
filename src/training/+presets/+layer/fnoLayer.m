@@ -11,7 +11,7 @@ function layer = fnoLayer(width, nmodes, args)
         additionLayer(2, "Name", "add")
     ];
     net   = addLayers(net, layers);
-    net   = addLayers(net, convolution1dLayer(1, 32, "Name", "conv"));
+    net   = addLayers(net, convolution1dLayer(1, width, "Name", "conv"));
     net   = connectLayers(net, "id"  , "conv"   );
     net   = connectLayers(net, "conv", "add/in2");
     layer = networkLayer(net, "Name", args.Name);

@@ -10,18 +10,28 @@ function net = FNO(params)
 
     % Learning
     layersNN = [
-        %reshapeLayer([1, 5], "Name", "nnin", "OperationDimension", "spatial-channel")
-        functionLayer(@(X) dlarray(reshape(X, [1, 5, size(X, 2)]), "SCB"), "Name", "nnin", "Acceleratable", true, "Formattable", true)
-        convolution1dLayer(1, 32)
-        ...
-        presets.layer.fnoLayer(32, 2, "Name", "fno1")
+        identityLayer("Name", "nnin")
+        fullyConnectedLayer(16)
         geluLayer()
-        presets.layer.fnoLayer(32, 1, "Name", "fno2")
+        fullyConnectedLayer(16)
         geluLayer()
         ...
-        convolution1dLayer(1, 1, "WeightsInitializer", "zeros")
-        %reshapeLayer(1, "Name", "nnout", "OperationDimension", "spatial-channel", "Name", "nnout")
-        functionLayer(@(X) dlarray(reshape(X, [1, size(X, 3)]), "CB"), "Name", "nnout", "Acceleratable", true, "Formattable", true)
+        %reshapeLayer([1, 5], "OperationDimension", "spatial-channel")
+        functionLayer(@(X) dlarray(reshape(X, [1, 16, size(X, 2)]), "SCB"), "Acceleratable", true, "Formattable", true)
+        presets.layer.fnoLayer(16, 8, "Name", "fno1")
+        geluLayer()
+        presets.layer.fnoLayer(16, 8, "Name", "fno2")
+        geluLayer()
+        %reshapeLayer(1, "OperationDimension", "spatial-channel")
+        functionLayer(@(X) dlarray(reshape(X, [16, size(X, 3)]), "CB"), "Acceleratable", true, "Formattable", true)
+        ...
+        fullyConnectedLayer(16)
+        geluLayer()
+        fullyConnectedLayer(16)
+        geluLayer()
+        ...
+        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
+        identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
