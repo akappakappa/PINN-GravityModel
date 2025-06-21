@@ -59,9 +59,9 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             mask = Radius >= R1 & Radius <= R2;
             x    = (Radius(mask) - R1) / (R2 - R1);
 
-            W            = zeros(size(Radius));
-            W(mask)      = x .^ 2 .* (3 - 2 .* x);
-            W(mask > R2) = 1;
+            W              = zeros(size(Radius));
+            W(mask)        = x .^ 2 .* (3 - 2 .* x);
+            W(Radius > R2) = 1;
         end
 
         function W = weightTanh(layer, Radius)
