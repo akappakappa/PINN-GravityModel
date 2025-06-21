@@ -5,6 +5,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
     properties
         rref        % Reference radius for the model
         smoothness  % Smoothness of the model transition
+        weightFunc
     end
 
     methods
@@ -14,6 +15,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
                 args.Description = "Applies Boundary Conditions to transition from the Fused Model to the Low-Fidelity Analytic Model";
                 args.InputNames  = ["PotFused", "PotLF", "Radius"];
                 args.OutputNames = "Potential";
+                args.Mode {mustBeMember(args.Mode, {'smoothstep', 'tanh'})} = "smoothstep";
             end
             % Construct the layer.
 
@@ -21,40 +23,46 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
             layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
-            layer.rref        = 14;
-            layer.smoothness  = 4;
+            
+            switch args.Mode
+                case "tanh"
+                    layer.rref       = 10;
+                    layer.smoothness = 0.5;
+                    layer.weightFunc = @layer.weightTanh;
+                case "smoothstep"
+                    layer.rref       = 14;
+                    layer.smoothness = 4;
+                    layer.weightFunc = @layer.weightSmoothstep;
+            end
         end
 
         function Potential = predict(layer, PotFused, PotLF, Radius)
             % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
 
-            % Tanh
-            %weightBounds     = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+            weightBounds  = layer.weightFunc(Radius);
+            weightNetwork = 1 - weightBounds;
+            Potential     = weightNetwork .* PotFused + weightBounds .* PotLF;
+        end
 
-            % GELU
-            %weightBounds     = (1 + erf(layer.smoothness .* (Radius - layer.rref))) ./ 2;
 
-            % Sigmoid
-            %weightBounds     = 1 ./ (1 + exp(-layer.smoothness .* (Radius - layer.rref)));
+        
+        function W = weightSmoothstep(layer, Radius)
+            % Smoothstep polynomial function
 
-            % Ramp
-            %weightBounds              = zeros(size(Radius));
-            %idxLinear                 = Radius >= 8 & Radius <= 12;
-            %weightBounds(idxLinear)   = (Radius(idxLinear) - 8) / 4;
-            %weightBounds(Radius > 12) = 1;
+            R1   = layer.rref - layer.smoothness;
+            R2   = layer.rref + layer.smoothness;
+            mask = Radius >= R1 & Radius <= R2;
+            x    = (Radius(mask) - R1) / (R2 - R1);
 
-            % Smoothstep
-            weightBounds                = zeros(size(Radius));
-            rStart                      = layer.rref - layer.smoothness;
-            rEnd                        = layer.rref + layer.smoothness;
-            mask                        = Radius >= rStart & Radius <= rEnd;
-            x                           = (Radius(mask) - rStart) / (rEnd - rStart);
-            weightBounds(mask)          = x .^ 2 .* (3 - 2 .* x);
-            %weightBounds(mask)          = x .^ 3 .* (x .* (6 .* x - 15) + 10);
-            weightBounds(Radius > rEnd) = 1;
+            W            = zeros(size(Radius));
+            W(mask)      = x .^ 2 .* (3 - 2 .* x);
+            W(mask > R2) = 1;
+        end
 
-            weightNetwork    = 1 - weightBounds;
-            Potential        = weightNetwork .* PotFused + weightBounds .* PotLF;
+        function W = weightTanh(layer, Radius)
+            % Tanh based fuction, prone to artefacting
+
+            W = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
         end
     end
 end

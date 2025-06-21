@@ -10,27 +10,47 @@ function net = PINN_GM_III(params)
 
     % Learning
     layersNN = [
-        fullyConnectedLayer(32, "Name", "fc1")
-        geluLayer("Name", "act1")
-        fullyConnectedLayer(32, "Name", "fc2")
-        geluLayer("Name", "act2")
-        fullyConnectedLayer(32, "Name", "fc3")
-        geluLayer("Name", "act3")
-        fullyConnectedLayer(32, "Name", "fc4")
-        geluLayer("Name", "act4")
-        fullyConnectedLayer(32, "Name", "fc5")
-        geluLayer("Name", "act5")
-        fullyConnectedLayer(32, "Name", "fc6")
-        geluLayer("Name", "act6")
+        identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(1 , "Name", "fcfinal", "WeightsInitializer", "zeros")
+        fullyConnectedLayer(32)
+        geluLayer()
+        identityLayer("Name", "skip")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add1")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add2")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add3")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add4")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add5")
+
+        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
+        ...
+        identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
-    net = connectLayers(net, "cart2sphLayer/Spherical", "fc1");
+    net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
+    net = connectLayers(net, "skip", "add1/in2");
+    net = connectLayers(net, "skip", "add2/in2");
+    net = connectLayers(net, "skip", "add3/in2");
+    net = connectLayers(net, "skip", "add4/in2");
+    net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
-    net = connectLayers(net, "fcfinal"             , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
     net = addLayers(net, presets.layer.analyticModelLayer("mu", params.mu));
@@ -40,7 +60,7 @@ function net = PINN_GM_III(params)
     net = connectLayers(net, "scaleNNPotentialLayer", "fuseModelsLayer/PotNN");
     net = connectLayers(net, "analyticModelLayer"   , "fuseModelsLayer/PotLF");
 
-    net = addLayers(net, presets.layer.applyBoundaryConditionsLayer());
+    net = addLayers(net, presets.layer.applyBoundaryConditionsLayer("Mode", "tanh"));
     net = connectLayers(net, "fuseModelsLayer"     , "applyBoundaryConditionsLayer/PotFused");
     net = connectLayers(net, "analyticModelLayer"  , "applyBoundaryConditionsLayer/PotLF"   );
     net = connectLayers(net, "cart2sphLayer/Radius", "applyBoundaryConditionsLayer/Radius"  );
