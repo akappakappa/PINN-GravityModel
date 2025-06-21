@@ -53,7 +53,7 @@ function net = PINN_GM_III(params)
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    net = addLayers(net, presets.layer.analyticModelLayer("mu", params.mu));
+    net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
     net = connectLayers(net, "cart2sphLayer/Radius", "analyticModelLayer");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());

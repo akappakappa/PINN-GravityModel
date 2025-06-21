@@ -1,26 +1,27 @@
 classdef fuseModelsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
-    % fuseModelsLayer Fuses the Neural Network and Low-Fidelity Analytic Model Potentials.
-    %   This layer fuses the Neural Network and Low-Fidelity Analytic Model Potentials.
+    % fuseModelsLayer Fuse the Network's prediction with a low-fidelity analytic model
+    % Samples that lie withing the training bounds are provided with a starting point prediction based on a low-fidelity analytic model.
+    % This allows the Network to solely focus on learning the difference between a simple point-mass model and the complex true labels.
+    %
+    % fuseModelsLayer Methods:
+    %    predict - Sum the Network's prediction to the low-fidelity model
+    %
+    % See also presets.layer.analyticModelLayer, presets.layer.applyBoundaryConditionsLayer.
 
     methods
         function layer = fuseModelsLayer(args)
             arguments
-                args.Name        = "fuseModelsLayer";
-                args.Description = "Fuses the Neural Network and Low-Fidelity Analytic Model Potentials";
-                args.InputNames  = ["PotNN", "PotLF"];
-                args.OutputNames = "Potential";
+                args.Name        = "fuseModelsLayer"
+                args.InputNames  = ["PotNN", "PotLF"]
+                args.OutputNames = "Potential"
             end
-            % Construct the layer.
 
             layer.Name        = args.Name;
-            layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
         end
 
         function Potential = predict(~, PotNN, PotLF)
-            % Computes the potential by fusing the Neural Network and Low-Fidelity Analytic Model Potentials.
-
             Potential = PotNN + PotLF;
         end
     end
