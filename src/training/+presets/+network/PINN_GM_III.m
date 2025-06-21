@@ -16,11 +16,6 @@ function net = PINN_GM_III(params)
         geluLayer()
         identityLayer("Name", "skip")
 
-        presets.layer.gateLayer()
-        presets.layer.rbfLayer(32)
-        presets.layer.factorizedLayer(32, 12, "WeightsInitializer", "glorot")
-        presets.layer.sineLayer("Omega0", 2)
-
         fullyConnectedLayer(32)
         geluLayer()
         additionLayer(2, "Name", "add1")
