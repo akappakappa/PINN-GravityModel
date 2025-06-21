@@ -26,17 +26,17 @@ classdef rbfLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.For
                 OutputSize
                 args.Name    = "rbfLayer"
                 args.Centers = []
-                args.Gamme   = []
+                args.Gamma   = []
             end
             
             layer.Name = args.Name;
 
             layer.OutputSize = OutputSize;
             layer.Centers    = args.Centers;
-            layer.Gamme      = args.Gamme;
+            layer.Gamma      = args.Gamma;
         end
         function layer = initialize(layer, layout)
-            inChannels  = layer.Size(finddim(layout, "C"));
+            inChannels  = layout.Size(finddim(layout, "C"));
             outChannels = layer.OutputSize;
             
             if isempty(layer.Centers)

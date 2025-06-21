@@ -54,7 +54,7 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
         end
 
         function layer = initialize(layer, layout)
-            inChannels  = layer.Size(finddim(layout, "C"));
+            inChannels  = layout.Size(finddim(layout, "C"));
             outChannels = layer.OutputSize;
             R           = layer.Rank;
 

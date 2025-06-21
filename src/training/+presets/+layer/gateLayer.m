@@ -26,7 +26,7 @@ classdef gateLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Fo
         end
 
         function layer = initialize(layer, layout)
-            numChannels = layer.Size(finddim(layout, "C"));
+            numChannels = layout.Size(finddim(layout, "C"));
 
             if isempty(layer.Gate)
                 layer.Gate = dlarray(zeros(numChannels, 1));

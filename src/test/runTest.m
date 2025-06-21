@@ -8,7 +8,7 @@ headless        = batchStartupOptionUsed;
 
 % Preparations - Data
 data = mLoadData("src/preprocessing/metricsData.mat");
-net  = load("src/training/residual.mat").net;
+net  = load("src/training/net.mat").net;
 
 % Compute metrics
 % ---------------------------------------------------------- | Preset func -- | NN | Trajectory Data ------------- | Acceleration Data ----------- | Potential Data -------------- |
