@@ -56,6 +56,10 @@ function data = PINN_GM_III(data)
         data.mPlanesACC = data.mPlanesACC ./ sACC;
         data.mPlanesPOT = data.mPlanesPOT ./ sPOT;
 
+        data.pPlanesTRJ = data.pPlanesTRJ ./ sTRJ;
+        data.pPlanesACC = data.pPlanesACC ./ sACC;
+        data.pPlanesPOT = data.pPlanesPOT ./ sPOT;
+
         data.mGeneralizationTRJ_0_1    = data.mGeneralizationTRJ_0_1    ./ sTRJ;
         data.mGeneralizationACC_0_1    = data.mGeneralizationACC_0_1    ./ sACC;
         data.mGeneralizationPOT_0_1    = data.mGeneralizationPOT_0_1    ./ sPOT;
@@ -66,9 +70,23 @@ function data = PINN_GM_III(data)
         data.mGeneralizationACC_10_100 = data.mGeneralizationACC_10_100 ./ sACC;
         data.mGeneralizationPOT_10_100 = data.mGeneralizationPOT_10_100 ./ sPOT;
 
+        data.pGeneralizationTRJ_0_1    = data.pGeneralizationTRJ_0_1    ./ sTRJ;
+        data.pGeneralizationACC_0_1    = data.pGeneralizationACC_0_1    ./ sACC;
+        data.pGeneralizationPOT_0_1    = data.pGeneralizationPOT_0_1    ./ sPOT;
+        data.pGeneralizationTRJ_1_10   = data.pGeneralizationTRJ_1_10   ./ sTRJ;
+        data.pGeneralizationACC_1_10   = data.pGeneralizationACC_1_10   ./ sACC;
+        data.pGeneralizationPOT_1_10   = data.pGeneralizationPOT_1_10   ./ sPOT;
+        data.pGeneralizationTRJ_10_100 = data.pGeneralizationTRJ_10_100 ./ sTRJ;
+        data.pGeneralizationACC_10_100 = data.pGeneralizationACC_10_100 ./ sACC;
+        data.pGeneralizationPOT_10_100 = data.pGeneralizationPOT_10_100 ./ sPOT;
+
         data.mSurfaceTRJ = data.mSurfaceTRJ ./ sTRJ;
         data.mSurfaceACC = data.mSurfaceACC ./ sACC;
         data.mSurfacePOT = data.mSurfacePOT ./ sPOT;
+
+        data.pSurfaceTRJ = data.pSurfaceTRJ ./ sTRJ;
+        data.pSurfaceACC = data.pSurfaceACC ./ sACC;
+        data.pSurfacePOT = data.pSurfacePOT ./ sPOT;
 
         % Scale parameters
         data.params.mu = data.params.mu / sMU;

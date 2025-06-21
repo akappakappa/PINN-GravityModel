@@ -27,6 +27,15 @@ fprintf("Generalization metric [10R:100R]: %f\n", mean(GeneralizationMetric_10_1
 fprintf("Generalization metric [0R:100R] : %f\n", mean(GeneralizationMetric       ));
 fprintf("Surface metric                  : %f\n", mean(SurfaceMetric              ));
 
+% Compute Polyhedral comparison
+[PlanesPoly               , PlanesRadiusPoly        ] = presets.comparePolyhedral(data.mPlanesTRJ               , data.mPlanesACC               , data.mPlanesPOT               , data.pPlanesTRJ               , data.pPlanesACC               , data.pPlanesPOT               );
+[GeneralizationPoly_0_1   , GeneralizationRadiusPoly] = presets.comparePolyhedral(data.mGeneralizationTRJ_0_1   , data.mGeneralizationACC_0_1   , data.mGeneralizationPOT_0_1   , data.pGeneralizationTRJ_0_1   , data.pGeneralizationACC_0_1   , data.pGeneralizationPOT_0_1   );
+[GeneralizationPoly_1_10  , GeneralizationRadiusPoly] = presets.comparePolyhedral(data.mGeneralizationTRJ_1_10  , data.mGeneralizationACC_1_10  , data.mGeneralizationPOT_1_10  , data.pGeneralizationTRJ_1_10  , data.pGeneralizationACC_1_10  , data.pGeneralizationPOT_1_10  );
+[GeneralizationPoly_10_100, GeneralizationRadiusPoly] = presets.comparePolyhedral(data.mGeneralizationTRJ_10_100, data.mGeneralizationACC_10_100, data.mGeneralizationPOT_10_100, data.pGeneralizationTRJ_10_100, data.pGeneralizationACC_10_100, data.pGeneralizationPOT_10_100);
+[GeneralizationPoly       , GeneralizationRadiusPoly] = presets.comparePolyhedral(data.mGeneralizationTRJ       , data.mGeneralizationACC       , data.mGeneralizationPOT       , data.pGeneralizationTRJ       , data.pGeneralizationACC       , data.pGeneralizationPOT       );
+[SurfacePoly              , SurfaceRadiusPoly       ] = presets.comparePolyhedral(data.mSurfaceTRJ              , data.mSurfaceACC              , data.mSurfacePOT              , data.pSurfaceTRJ              , data.pSurfaceACC              , data.pSurfacePOT              );
+
+
 % Plotting
 if headless
     return;
@@ -34,7 +43,9 @@ end
 
 % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
 figure;
-semilogy(extractdata(GeneralizationRadius), extractdata(GeneralizationMetric), '.', 'DisplayName', 'Generalization');
+hold on;
+semilogy(extractdata(GeneralizationRadius)    , extractdata(GeneralizationMetric), '.', 'DisplayName', 'Generalization');
+semilogy(extractdata(GeneralizationRadiusPoly), extractdata(GeneralizationPoly)  , '.', 'DisplayName', 'Polyhedral');
 
 set(gca, 'YScale', 'log');
 xlim([0, 20]);
@@ -44,56 +55,29 @@ ylabel('Mean Percent Error (MPE)');
 title('Generalization: MPE vs. Distance (R)');
 legend('show'); 
 
-% Predicting potentials within the network
-actNN               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'scaleNNPotentialLayer');
-actLF               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'analyticModelLayer'   );
-actFuse             = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'fuseModelsLayer'      );
-[sortedRadius, idx] = sort(extractdata(GeneralizationRadius));
-sortedNN            = abs(extractdata(actNN(idx)  ));
-sortedLF            = abs(extractdata(actLF(idx)  ));
-sortedFuse          = abs(extractdata(actFuse(idx)));
+% TODO: Predict potentials within the network
+%actNN               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'scaleNNPotentialLayer');
+%actLF               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'analyticModelLayer'   );
+%actFuse             = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'fuseModelsLayer'      );
+%[sortedRadius, idx] = sort(extractdata(GeneralizationRadius));
+%sortedNN            = abs(extractdata(actNN(idx)  ));
+%sortedLF            = abs(extractdata(actLF(idx)  ));
+%sortedFuse          = abs(extractdata(actFuse(idx)));
 
-% Plotting potentials
-figure;
-hold on;
-semilogy(sortedRadius, sortedLF  , '.', 'DisplayName', 'PotAnalytic');
-semilogy(sortedRadius, sortedFuse, '.', 'DisplayName', 'PotFused'   );
-semilogy(sortedRadius, sortedNN  , '.', 'DisplayName', 'PotNN'      );
+% TODO: Implement more visualizations
+%figure;
+%hold on;
+%semilogy(sortedRadius, XXX , '.', 'DisplayName', 'XXX');
 
-set(gca, 'YScale', 'log');
-xlim([0, 20]);
-grid on;
-xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
-xlabel('Distance (R)');
-ylabel('Potential');
-title('Generalization Potential: Analytic vs Fused');
-legend('show');
+%set(gca, 'YScale', 'log');
+%xlim([0, 20]);
+%grid on;
+%xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
+%xlabel('XXX');
+%ylabel('XXX');
+%title('XXX');
+%legend('show');
 
-% NN vs Analytic (Fusion)
-figure;
-semilogy(sortedRadius, abs(sortedNN - sortedLF), '.', 'DisplayName', 'NN - Analytic');
-
-set(gca, 'YScale', 'log');
-xlim([0, 20]);
-grid on;
-xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
-xlabel('Distance (R)');
-ylabel('Absolute Difference');
-title('Generalization Potential: Difference between NN and Analytic Potential');
-legend('show');
-
-% Fused vs Analytic (Boundary)
-figure;
-semilogy(sortedRadius, sortedNN, '.', 'DisplayName', 'NN (= Fused - Analytic)');
-
-set(gca, 'YScale', 'log');
-xlim([0, 20]);
-grid on;
-xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
-xlabel('Distance (R)');
-ylabel('Absolute Difference');
-title('Generalization Potential: NN');
-legend('show');
 
 % Planes Metric
 points = extractdata(data.mPlanesTRJ)';
@@ -357,6 +341,9 @@ function data = mLoadData(path)
     data.mGeneralizationTRJ = cat(1, data.mGeneralizationTRJ_0_1, data.mGeneralizationTRJ_1_10, data.mGeneralizationTRJ_10_100);
     data.mGeneralizationACC = cat(1, data.mGeneralizationACC_0_1, data.mGeneralizationACC_1_10, data.mGeneralizationACC_10_100);
     data.mGeneralizationPOT = cat(1, data.mGeneralizationPOT_0_1, data.mGeneralizationPOT_1_10, data.mGeneralizationPOT_10_100);
+    data.pGeneralizationTRJ = cat(1, data.pGeneralizationTRJ_0_1, data.pGeneralizationTRJ_1_10, data.pGeneralizationTRJ_10_100);
+    data.pGeneralizationACC = cat(1, data.pGeneralizationACC_0_1, data.pGeneralizationACC_1_10, data.pGeneralizationACC_10_100);
+    data.pGeneralizationPOT = cat(1, data.pGeneralizationPOT_0_1, data.pGeneralizationPOT_1_10, data.pGeneralizationPOT_10_100);
 
     names = fieldnames(data);
     for i = 1:numel(names)
