@@ -1,4 +1,4 @@
-function net = Residual(params)
+function net = Factorized12(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,37 +12,24 @@ function net = Residual(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(32)
+        presets.layer.factorizedLayer(32, 12)
         geluLayer()
-
-        identityLayer("Name", "skip1")
-        fullyConnectedLayer(32)
+        presets.layer.factorizedLayer(32, 12)
         geluLayer()
-        fullyConnectedLayer(32)
-        additionLayer(2, "Name", "add1")
+        presets.layer.factorizedLayer(32, 12)
         geluLayer()
-
-        identityLayer("Name", "skip2")
-        fullyConnectedLayer(32)
+        presets.layer.factorizedLayer(32, 12)
         geluLayer()
-        fullyConnectedLayer(32)
-        additionLayer(2, "Name", "add2")
+        presets.layer.factorizedLayer(32, 12)
         geluLayer()
-
-        identityLayer("Name", "skip3")
-        fullyConnectedLayer(32)
-        additionLayer(2, "Name", "add3")
+        presets.layer.factorizedLayer(32, 12)
         geluLayer()
-
-        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
+        presets.layer.factorizedLayer(1 , 12, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip1", "add1/in2");
-    net = connectLayers(net, "skip2", "add2/in2");
-    net = connectLayers(net, "skip3", "add3/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
