@@ -24,7 +24,7 @@ function net = Factorized32(params)
         geluLayer()
         presets.layer.factorizedLayer(32, 32, "Name", "fac6")
         geluLayer()
-        presets.layer.factorizedLayer(1 , 32, "Name", "fac7", "WeightsInitializer", "zeros")
+        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];
