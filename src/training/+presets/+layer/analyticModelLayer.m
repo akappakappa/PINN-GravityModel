@@ -32,20 +32,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
             % Computes the potential at the given RADIUS.
 
             Potential = -(layer.mu ./ Radius);
-
-            % Tanh
             weight    = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
-
-            % Smoothstep
-            %weight                = zeros(size(Radius));
-            %rStart                = layer.rref - layer.smoothness;
-            %rEnd                  = layer.rref + layer.smoothness;
-            %mask                  = Radius >= rStart & Radius <= rEnd;
-            %x                     = (Radius(mask) - rStart) / (rEnd - rStart);
-            %%weight(mask)          = x .^ 2 .* (3 - 2 .* x);
-            %weight(mask)          = x .^ 3 .* (x .* (6 .* x - 15) + 10);
-            %weight(Radius > rEnd) = 1;
-
             Potential = weight .* Potential;
         end
     end
