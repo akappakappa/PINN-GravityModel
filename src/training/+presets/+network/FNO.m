@@ -12,7 +12,6 @@ function net = FNO(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        %reshapeLayer([1, 5], "OperationDimension", "spatial-channel")
         functionLayer(@(X) dlarray(reshape(X, [1, 3, size(X, 2)]), "SCB"), "Acceleratable", true, "Formattable", true)
         convolution1dLayer(1, 32)
         presets.layer.fnoLayer(32, 3, "Name", "fno1")
@@ -23,19 +22,18 @@ function net = FNO(params)
         geluLayer()
         convolution1dLayer(1, 1, "WeightsInitializer", "zeros")
         ...
-        %reshapeLayer(1, "OperationDimension", "spatial-channel")
         functionLayer(@(X) dlarray(reshape(X, [1, size(X, 3)]), "CB"), "Acceleratable", true, "Formattable", true)
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
-    net = connectLayers(net, "featureinput", "nnin");
+    net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    net = addLayers(net, presets.layer.analyticModelLayer("mu", params.mu));
+    net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
     net = connectLayers(net, "cart2sphLayer/Radius", "analyticModelLayer");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());
