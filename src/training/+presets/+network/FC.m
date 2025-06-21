@@ -1,4 +1,4 @@
-function net = Transformer(params)
+function net = FC(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -10,31 +10,33 @@ function net = Transformer(params)
 
     % Learning
     layersNN = [
-        fullyConnectedLayer(32, "Name", "fc1")
+        identityLayer("Name", "nnin")
         ...
-        selfAttentionLayer(2, 32, "Name", "attention")
-        additionLayer(2, "Name", "add1A")
-        layerNormalizationLayer("Name", "normA")
+        fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
-        fullyConnectedLayer(32, "Name", "fc2")
-        geluLayer("Name", "act2")
-        fullyConnectedLayer(32, "Name", "fc3")
-        additionLayer(2, "Name", "addA3")
-        layerNormalizationLayer("Name", "norm2")
-        ...
-        fullyConnectedLayer(1 , "Name", "fcfinal", "WeightsInitializer", "zeros")
+        identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
-    net = connectLayers(net, "cart2sphLayer/Spherical", "fc1");
-    net = connectLayers(net, "fc1"  , "add1A/in2");
-    net = connectLayers(net, "normA", "addA3/in2");
+    net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
-    net = connectLayers(net, "fcfinal"             , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2sphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    net = addLayers(net, presets.layer.analyticModelLayer("mu", params.mu));
+    net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
     net = connectLayers(net, "cart2sphLayer/Radius", "analyticModelLayer");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());
