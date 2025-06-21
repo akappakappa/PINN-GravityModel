@@ -14,22 +14,16 @@ function net = FC(params)
         ...
         fullyConnectedLayer(32)
         geluLayer()
-
         fullyConnectedLayer(32)
         geluLayer()
-
         fullyConnectedLayer(32)
         geluLayer()
-
         fullyConnectedLayer(32)
         geluLayer()
-
         fullyConnectedLayer(32)
         geluLayer()
-
         fullyConnectedLayer(32)
         geluLayer()
-
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
