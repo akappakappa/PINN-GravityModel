@@ -1,56 +1,61 @@
 classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
-    % applyBoundaryConditionsLayer Applies Boundary Conditions to transition from the Fused Model to the Low-Fidelity Analytic Model.
-    %   This layer transitions predictions from the Fused Model to the Low-Fidelity Analytic Model using a smooth transition around 10R.
-
+    % applyBoundaryConditionsLayer Transition from fused (Network + low-fidelity) potential to exclusively low-fidelity prediction.
+    % Samples that lie outside the training bounds will use a low-fidelity potential to avoid high generalization error numbers at high altitudes.
+    % Construct with either "smoothstep" (default, ideal) or "tanh" (prone to artefacting) Mode argument.
+    %
+    % applyBoundaryConditionsLayer Properties:
+    %    Rref       - Reference radius to apply a gentle fade-in of this model's prediction
+    %    Smoothness - Transition coefficient for the fade-in
+    %    WeightFunc - Transition function
+    %
+    % applyBoundaryConditionsLayer Methods:
+    %    predict - Transition from exterior bounds prediction to extrapolation prediction
+    %
+    % See also presets.layer.cart2sphLayer, presets.layer.analyticModelLayer, presets.layer.fuseModelsLayer.
+    
     properties
-        rref        % Reference radius for the model
-        smoothness  % Smoothness of the model transition
-        weightFunc
+        Rref
+        Smoothness
+        WeightFunc
     end
 
     methods
         function layer = applyBoundaryConditionsLayer(args)
             arguments
-                args.Name        = "applyBoundaryConditionsLayer";
-                args.Description = "Applies Boundary Conditions to transition from the Fused Model to the Low-Fidelity Analytic Model";
-                args.InputNames  = ["PotFused", "PotLF", "Radius"];
-                args.OutputNames = "Potential";
+                args.Name        = "applyBoundaryConditionsLayer"
+                args.InputNames  = ["PotFused", "PotLF", "Radius"]
+                args.OutputNames = "Potential"
+
                 args.Mode {mustBeMember(args.Mode, {'smoothstep', 'tanh'})} = "smoothstep";
             end
-            % Construct the layer.
 
             layer.Name        = args.Name;
-            layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
             
             switch args.Mode
                 case "tanh"
-                    layer.rref       = 10;
-                    layer.smoothness = 0.5;
-                    layer.weightFunc = @layer.weightTanh;
+                    layer.Rref       = 10;
+                    layer.Smoothness = 0.5;
+                    layer.WeightFunc = @layer.weightTanh;
                 case "smoothstep"
-                    layer.rref       = 14;
-                    layer.smoothness = 4;
-                    layer.weightFunc = @layer.weightSmoothstep;
+                    layer.Rref       = 14;
+                    layer.Smoothness = 4;
+                    layer.WeightFunc = @layer.weightSmoothstep;
             end
         end
 
         function Potential = predict(layer, PotFused, PotLF, Radius)
-            % Computes the potential at the given RADIUS, applying a smooth transition around 10R between the Fused Model and the Low-Fidelity Analytic Model.
-
-            weightBounds  = layer.weightFunc(Radius);
+            weightBounds  = layer.WeightFunc(Radius);
             weightNetwork = 1 - weightBounds;
             Potential     = weightNetwork .* PotFused + weightBounds .* PotLF;
         end
+    end
 
-
-        
+    methods (Access = private)
         function W = weightSmoothstep(layer, Radius)
-            % Smoothstep polynomial function
-
-            R1   = layer.rref - layer.smoothness;
-            R2   = layer.rref + layer.smoothness;
+            R1   = layer.Rref - layer.Smoothness;
+            R2   = layer.Rref + layer.Smoothness;
             mask = Radius >= R1 & Radius <= R2;
             x    = (Radius(mask) - R1) / (R2 - R1);
 
@@ -60,9 +65,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
         end
 
         function W = weightTanh(layer, Radius)
-            % Tanh based fuction, prone to artefacting
-
-            W = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+            W = (1 + tanh(layer.Smoothness .* (Radius - layer.Rref))) ./ 2;
         end
     end
 end

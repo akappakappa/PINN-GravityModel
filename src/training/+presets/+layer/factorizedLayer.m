@@ -1,54 +1,84 @@
 classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
-    % factorizedLayer Factorized layer for fewer parameters.
-    %   This layer uses a factorized matrix to reduce the number of parameters, W = W1 * W2.
-
+    % factorizedLayer Low-rank factorization approximation of a fully-connected layer.
+    % Low-rank factorization of the weight matrix into two smaller matrices W1 and W2, such that W ~ W1 * W2.
+    % Reduces number of learnable parameters, while trying to keep comparable level of expression.
+    %
+    % factorizedLayer Properties:
+    %    W1, W2     - Learnable low-rank factorized weight matrices
+    %    Bias       - Learnable bias vector
+    %    OutputSize - Number of output neurons
+    %    Rank       - Factorization rank
+    %
+    % factorizedLayer Methods:
+    %    initialize - "glorot" (default) or "zeros" weights initialization and zeros bias initialization
+    %    predict    - Fully connect the layer by forming a new matrix W = W1 * W2
+    
     properties (Learnable)
-        W1     % First Weight matrix
-        W2     % Second Weight matrix
-        Bias   % Bias vector
+        W1
+        W2
+        Bias
     end
     
     properties
-        InputSize    % Size of the input layer
-        OutputSize   % Size of the output layer
-        Rank         % Rank of the factorization
+        OutputSize
+        Rank
+        WeightsInitializer
     end
     
     methods
-        function layer = factorizedLayer(InputSize, OutputSize, Rank, args)
+        function layer = factorizedLayer(OutputSize, Rank, args)
             arguments
-                InputSize
                 OutputSize
                 Rank
-                args.Name        = "factorizedLayer";
-                args.Description = "Factorized layer for fewer parameters";
+
+                args.Name = "factorizedLayer"
+                
+                args.W1   = []
+                args.W2   = []
+                args.Bias = []
+                args.WeightsInitializer {mustBeMember(args.WeightsInitializer, {'glorot', 'zeros'})} = "glorot";
             end
-            % Construct the layer, performing Glorot initialization for W and spectral initialization for W1 and W2.
 
-            layer.Name       = args.Name;
-            layer.InputSize  = InputSize;
-            layer.OutputSize = OutputSize;
-            layer.Rank       = Rank;
+            if xor(~isempty(args.W1), ~isempty(args.W2))
+                error("factorizedLayer:InvalidInput", "W1 and W2 must be specified together (both non empty) or omitted.");
+            end
 
-            % Glorot initialization for full-rank matrix W
-            bound = sqrt(6 / (InputSize + OutputSize));
-            Z     = 2 * rand([OutputSize, InputSize]) - 1;
-            W     = bound * Z;
+            layer.Name = args.Name;
 
-            % Spectral initialization for W1 and W2
-            [U, S, V] = svds(W, Rank);
-            layer.W1  = dlarray(U * sqrt(S));
-            layer.W2  = dlarray(sqrt(S) * V');
+            layer.OutputSize         = OutputSize;
+            layer.Rank               = Rank;
+            layer.W1                 = args.W1;
+            layer.W2                 = args.W2;
+            layer.Bias               = args.Bias;
+            layer.WeightsInitializer = args.WeightsInitializer;
+        end
 
-            % Bias initialization
-            layer.Bias = dlarray(zeros(OutputSize, 1));
+        function layer = initialize(layer, layout)
+            inChannels  = layer.Size(finddim(layout, "C"));
+            outChannels = layer.OutputSize;
+            R           = layer.Rank;
+
+            if (isempty(layer.W1) & isempty(layer.W2))
+                switch layer.WeightsInitializer
+                    case "glorot"
+                        W = (sqrt(6 / (inChannels + outChannels))) .* ...
+                            ( 2 * rand([outChannels, inChannels]) - 1 );
+                        [U, S, V] = svds(W, R);
+                        layer.W1  = dlarray(U * sqrt(S));
+                        layer.W2  = dlarray(sqrt(S) * V');
+                    case "zeros"
+                        layer.W1  = dlarray(zeros(outChannels, R));
+                        layer.W2  = dlarray(zeros(R, inChannels));
+                end
+            end
+
+            if isempty(layer.Bias)
+                layer.Bias = dlarray(zeros(outChannels, 1));
+            end
         end
         
         function Z = predict(layer, X)
-            % Computes the output of the layer using the factorized weights.
-
-            W = layer.W1 * layer.W2;
-            Z = fullyconnect(X, W, layer.Bias);
+            Z = fullyconnect(X, layer.W1 * layer.W2, layer.Bias);
         end
     end
 end

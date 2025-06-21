@@ -1,38 +1,48 @@
 classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.layer.Formattable
-    % analyticModelLayer Compute a Low-Fidelity Analytic Model for the Potential.
-    %   This layer computes a low-fidelity analytic model based on the 'mu' physical parameter.
+    % analyticModelLayer Compute a low-fidelity analytic gravitational potential model
+    % The low-fidelity point-mass analytical model is meant to aid the Network's prediction.
+    %
+    % analyticModelLayer Properties:
+    %    Mu         - Physical property of the celestial body defined as: Mu = G * Volume * Density
+    %    Rref       - Reference radius to apply a gentle fade-in of this model's prediction
+    %    Smoothness - Transition coefficient for the fade-in
+    %
+    % analyticModelLayer Methods:
+    %    predict - Provide a low-fidelity gravitational potential prediction
+    %
+    % See also presets.layer.cart2sphLayer, presets.layer.fuseModelsLayer, presets.layer.applyBoundaryConditionsLayer.
 
     properties
-        rref        % Reference radius for the model
-        smoothness  % Smoothness of the model transition
-        mu          % Physical parameter
+        Mu
+        Rref
+        Smoothness
     end
 
     methods
-        function layer = analyticModelLayer(args)
+        function layer = analyticModelLayer(Mu, args)
             arguments
-                args.Name        = "analyticModelLayer";
-                args.Description = "Computes a Low-Fidelity Analytic Model for the Potential";
-                args.InputNames  = "Radius";
-                args.OutputNames = "Potential";
-                args.mu
+                Mu
+
+                args.Name        = "analyticModelLayer"
+                args.InputNames  = "Radius"
+                args.OutputNames = "Potential"
+
+                args.Rref       = 0
+                args.Smoothness = 0.5
             end
-            % Construct the layer, given MU.
 
             layer.Name        = args.Name;
-            layer.Description = args.Description;
             layer.InputNames  = args.InputNames;
             layer.OutputNames = args.OutputNames;
-            layer.mu          = args.mu;
-            layer.rref        = 0;
-            layer.smoothness  = 0.5;
+
+            layer.Mu         = Mu;
+            layer.Rref       = args.Rref;
+            layer.Smoothness = args.Smoothness;
         end
 
         function Potential = predict(layer, Radius)
-            % Computes the potential at the given RADIUS.
-
-            Potential = -(layer.mu ./ Radius);
-            weight    = (1 + tanh(layer.smoothness .* (Radius - layer.rref))) ./ 2;
+            Potential = -(layer.Mu ./ Radius);
+            weight    = (1 + tanh(layer.Smoothness .* (Radius - layer.Rref))) ./ 2;
             Potential = weight .* Potential;
         end
     end
