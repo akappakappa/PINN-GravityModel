@@ -5,6 +5,46 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     figure;  % [left bottom width height]
     t = tiledlayout(1, 3, 'TileSpacing', 'compact', 'Padding', 'compact');
     
+    % XZ Plane
+    %figure;
+    %subplot(1,3,3);
+    nexttile
+
+    % Parameters
+    y0 = 0;
+    tol = 1e-6;
+
+    % Filter points in XZ plane
+    is_xz = abs(points(:,2) - y0) < tol;
+    xz_points = points(is_xz, [1,3]);       % Keep x and z
+    xz_errors = errors(is_xz);
+
+    % Grid
+    x_vals = unique(xz_points(:,1));
+    z_vals = unique(xz_points(:,2));
+    [X, Zgrid] = meshgrid(x_vals, z_vals);
+    Err = nan(size(X));
+
+    % Assign errors
+    [~, xi] = ismember(xz_points(:,1), x_vals);
+    [~, zi] = ismember(xz_points(:,2), z_vals);
+    for i = 1:length(xz_errors)
+        Err(zi(i), xi(i)) = xz_errors(i);
+    end
+
+    % Step 1: Transform data
+    logErr = log10(Err);
+    logErr(Err <= 0) = NaN;  % Avoid log10 of zero or negative numbers
+
+    % Step 2: Plot using surf with log10 data
+    surf(X, Zgrid, zeros(size(logErr)), logErr, 'EdgeColor', 'none');
+    view(2);
+    axis equal tight;
+    colormap jet;
+    grid off;
+    % Step 3: Set color axis and colorbar ticks
+    clim([-2 2])  % log10 scale from 10^-3 to 10^3
+
     % XY Plane
     nexttile
 
@@ -85,51 +125,11 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     % Step 3: Set color axis and colorbar ticks
     clim([-2 2])  % log10 scale from 10^-3 to 10^3
     
-
-    % XZ Plane
-    %figure;
-    %subplot(1,3,3);
-    nexttile
-
-    % Parameters
-    y0 = 0;
-    tol = 1e-6;
-
-    % Filter points in XZ plane
-    is_xz = abs(points(:,2) - y0) < tol;
-    xz_points = points(is_xz, [1,3]);       % Keep x and z
-    xz_errors = errors(is_xz);
-
-    % Grid
-    x_vals = unique(xz_points(:,1));
-    z_vals = unique(xz_points(:,2));
-    [X, Zgrid] = meshgrid(x_vals, z_vals);
-    Err = nan(size(X));
-
-    % Assign errors
-    [~, xi] = ismember(xz_points(:,1), x_vals);
-    [~, zi] = ismember(xz_points(:,2), z_vals);
-    for i = 1:length(xz_errors)
-        Err(zi(i), xi(i)) = xz_errors(i);
-    end
-
-    % Step 1: Transform data
-    logErr = log10(Err);
-    logErr(Err <= 0) = NaN;  % Avoid log10 of zero or negative numbers
-
-    % Step 2: Plot using surf with log10 data
-    surf(X, Zgrid, zeros(size(logErr)), logErr, 'EdgeColor', 'none');
-    view(2);
-    axis equal tight;
-    colormap jet;
-    grid off;
-    % Step 3: Set color axis and colorbar ticks
-    clim([-2 2])  % log10 scale from 10^-3 to 10^3
-
     cb = colorbar;
     log_ticks = -2:1:2;
     cb.Ticks = log_ticks;
     cb.TickLabels = arrayfun(@(x) sprintf('10^{%d}', x), log_ticks, 'UniformOutput', false);
     ylabel(cb, 'Error Magnitude (log scale)', 'FontWeight', 'bold')
+   
 
 end
