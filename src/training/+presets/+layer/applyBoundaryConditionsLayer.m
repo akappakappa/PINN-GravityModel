@@ -54,14 +54,15 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
 
     methods (Access = private)
         function W = weightSmoothstep(layer, Radius)
-            R1   = layer.Rref - layer.Smoothness;
-            R2   = layer.Rref + layer.Smoothness;
-            mask = Radius >= R1 & Radius <= R2;
-            x    = (Radius(mask) - R1) / (R2 - R1);
+            R1 = layer.Rref - layer.Smoothness;
+            R2 = layer.Rref + layer.Smoothness;
 
-            W              = zeros(size(Radius));
-            W(mask)        = x .^ 2 .* (3 - 2 .* x);
-            W(Radius > R2) = 1;
+            x = (Radius - R1) / (R2 - R1);
+            S = x .^ 2 .* (3 - 2 .* x);
+
+            W = (Radius < R1)                 .* 0 + ...
+                (Radius > R2)                 .* 1 + ...
+                (Radius >= R1 & Radius <= R2) .* S;
         end
 
         function W = weightTanh(layer, Radius)

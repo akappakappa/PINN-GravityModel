@@ -19,9 +19,20 @@ function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, args)
     PercentLoss(Inf == PercentLoss) = 0;   % Fix division by zero
 
     loss = AbsoluteLoss + PercentLoss;
-    sig     = 5;
-    weights = exp(-((Radius - 1) .^ 2) / (2 * sig ^ 2));
-    loss    = mean(loss .* weights, 2);
+
+    ampl     = 0.5;
+    sigL     = 1;
+    sigR     = 2;
+    peak     = 3;
+    
+    Common = -(Radius - peak) .^ 2 ./ 2;
+    WL     = 1 + ampl .* exp(Common ./ (sigL ^ 2));
+    WR     = 1 + ampl .* exp(Common ./ (sigR ^ 2));
+
+    M = Radius < peak;
+    W = M .* WL + ~M .* WR;
+
+    loss  = mean(loss .* W, 2);
 
     % Gradients
     if args.trainingMode
@@ -29,4 +40,5 @@ function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, args)
     else
         gradients = [];
     end
+
 end
