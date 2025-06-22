@@ -6,6 +6,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
     %    Mu         - Physical property of the celestial body defined as: Mu = G * Volume * Density
     %    Rref       - Reference radius to apply a gentle fade-in of this model's prediction
     %    Smoothness - Transition coefficient for the fade-in
+    %    WeightFunc - Transition function
     %
     % analyticModelLayer Methods:
     %    predict - Provide a low-fidelity gravitational potential prediction
@@ -16,6 +17,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
         Mu
         Rref
         Smoothness
+        WeightFunc
     end
 
     methods
@@ -29,6 +31,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
 
                 args.Rref       = 0
                 args.Smoothness = 0.5
+                args.FadeIn     = true
             end
 
             layer.Name        = args.Name;
@@ -38,12 +41,28 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
             layer.Mu         = Mu;
             layer.Rref       = args.Rref;
             layer.Smoothness = args.Smoothness;
+
+            if (true == args.FadeIn)
+                layer.WeightFunc = @layer.weightTanh;
+            else
+                layer.WeightFunc = @layer.weightOnes;
+            end
         end
 
         function Potential = predict(layer, Radius, RadiusInvExt)
             Potential = -(layer.Mu .* RadiusInvExt);
-            weight    = 0.5 + 0.5 .* tanh(layer.Smoothness .* (Radius - layer.Rref));
+            weight    = layer.WeightFunc(Radius);
             Potential = weight .* Potential;
+        end
+    end
+
+    methods (Access = private)
+        function W = weightTanh(layer, Radius)
+            W = 0.5 + 0.5 .* tanh(layer.Smoothness .* (Radius - layer.Rref));
+        end
+
+        function W = weightOnes(~, Radius)
+            W = ones(size(Radius));
         end
     end
 end
