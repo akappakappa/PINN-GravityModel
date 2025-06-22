@@ -19,6 +19,8 @@ function net = Residual(params)
         fullyConnectedLayer(32)
         geluLayer()
         fullyConnectedLayer(32)
+        geluLayer()
+        fullyConnectedLayer(32)
         additionLayer(2, "Name", "add1")
         geluLayer()
 
@@ -29,11 +31,6 @@ function net = Residual(params)
         additionLayer(2, "Name", "add2")
         geluLayer()
 
-        identityLayer("Name", "skip3")
-        fullyConnectedLayer(32)
-        additionLayer(2, "Name", "add3")
-        geluLayer()
-
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
@@ -42,7 +39,6 @@ function net = Residual(params)
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
     net = connectLayers(net, "skip1", "add1/in2");
     net = connectLayers(net, "skip2", "add2/in2");
-    net = connectLayers(net, "skip3", "add3/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
