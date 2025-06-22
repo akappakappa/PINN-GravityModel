@@ -1,4 +1,6 @@
 function [loss, gradients, state] = PINN_GM_I(net, TRJ, ACC, ~, args)
+    % PINN_GM_I OUTDATED
+
     arguments
         net
         TRJ
@@ -6,16 +8,12 @@ function [loss, gradients, state] = PINN_GM_I(net, TRJ, ACC, ~, args)
         ~
         args.trainingMode = true;
     end
-    % PINN_GM_I  Outdated loss function.
 
-    % Forward
     [pPOT, state] = forward(net, TRJ);
-    pACC          = -dlgradient(sum(pPOT, 'all'), TRJ, EnableHigherDerivatives = true);
+    pACC          = -dlgradient(sum(pPOT), TRJ);
 
-    % Loss
     loss = mse(pACC, ACC);
 
-    % Gradients
     if args.trainingMode
         gradients = dlgradient(loss, net.Learnables);
     else

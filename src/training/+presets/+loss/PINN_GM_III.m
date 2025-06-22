@@ -1,4 +1,8 @@
 function [loss, gradients, state] = PINN_GM_III(net, TRJ, ACC, ~, args)
+    % PINN_GM_III ME + MPE
+    % Compute Mean Error (ME) + Mean Percentage Error (MPE) loss between true accelerations and predicted ones.
+    % Predicted acceleration is obtained with autodiff as the gradients of the predicted potential (Network's output) wrt input coordinates.
+
     arguments
         net
         TRJ
@@ -6,22 +10,17 @@ function [loss, gradients, state] = PINN_GM_III(net, TRJ, ACC, ~, args)
         ~
         args.trainingMode = true;
     end
-    % PINN_GM_III  Loss function for the PINN model.
-    %   [LOSS, GRADIENTS, STATE] = PINN_GM_III(NET, TRJ, ACC, ~, TRAININGMODE) computes the loss and gradients for the PINN model as the mean of the sum of Mean Percentage Error (MPE) and Mean Error (ME) between the predicted (with automatic differentiation) and the actual acceleration.
 
-    % Forward
     [pPOT, ~, state] = forward(net, TRJ);
-    pACC             = -dlgradient(sum(pPOT, 'all'), TRJ, EnableHigherDerivatives = true);
+    pACC             = -dlgradient(sum(pPOT), TRJ);
 
-    % Loss
     AbsoluteLoss = vecnorm(pACC - ACC);
     PercentLoss  = AbsoluteLoss ./ vecnorm(ACC);
-    PercentLoss(Inf == PercentLoss) = 0;   % Fix division by zero
+    PercentLoss(Inf == PercentLoss) = 0;
 
     loss = AbsoluteLoss + PercentLoss;
     loss = mean(loss, 2);
 
-    % Gradients
     if args.trainingMode
         gradients = dlgradient(loss, net.Learnables);
     else
