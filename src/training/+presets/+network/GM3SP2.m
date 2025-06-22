@@ -1,4 +1,4 @@
-function net = Autoencoder(params)
+function net = GM3SP2(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,29 +12,44 @@ function net = Autoencoder(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(48)
-        geluLayer()
         fullyConnectedLayer(32)
         geluLayer()
-        fullyConnectedLayer(24)
-        geluLayer()
-        fullyConnectedLayer(12, "Name", "latent")
-        geluLayer()
-        fullyConnectedLayer(24)
-        geluLayer()
+        identityLayer("Name", "skip")
+
         fullyConnectedLayer(32)
         geluLayer()
-        fullyConnectedLayer(48)
+        additionLayer(2, "Name", "add1")
+
+        fullyConnectedLayer(32)
         geluLayer()
+        additionLayer(2, "Name", "add2")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add3")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add4")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+        additionLayer(2, "Name", "add5")
+
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
+    net = connectLayers(net, "skip", "add1/in2");
+    net = connectLayers(net, "skip", "add2/in2");
+    net = connectLayers(net, "skip", "add3/in2");
+    net = connectLayers(net, "skip", "add4/in2");
+    net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
-    net = addLayers(net, presets.layer.scaleNNPotentialLayer());
+    net = addLayers(net, presets.layer.scaleNNPotentialLayer("AnalyticModelPower", 2));
     net = connectLayers(net, "nnout"                     , "scaleNNPotentialLayer/Potential"   );
     net = connectLayers(net, "cart2SphLayer/RadiusInvExt", "scaleNNPotentialLayer/RadiusInvExt");
 

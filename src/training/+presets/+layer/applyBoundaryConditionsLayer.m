@@ -66,7 +66,7 @@ classdef applyBoundaryConditionsLayer < nnet.layer.Layer & nnet.layer.Accelerata
         end
 
         function W = weightTanh(layer, Radius)
-            W = (1 + tanh(layer.Smoothness .* (Radius - layer.Rref))) ./ 2;
+            W = 0.5 + 0.5 .* tanh(layer.Smoothness .* (Radius - layer.Rref));
         end
     end
 end

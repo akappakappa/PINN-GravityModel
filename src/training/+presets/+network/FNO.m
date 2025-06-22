@@ -4,7 +4,7 @@ function net = FNO(params)
     % Feature Engineering
     layersFeatureEngineering = [ ...
         featureInputLayer(3, "Name", "featureinput")
-        presets.layer.cart2sphLayer()
+        presets.layer.cart2SphLayer()
     ];
     net = addLayers(net, layersFeatureEngineering);
 
@@ -26,15 +26,16 @@ function net = FNO(params)
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
-    net = connectLayers(net, "cart2sphLayer/Spherical", "nnin");
+    net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
-    net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
-    net = connectLayers(net, "cart2sphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
+    net = connectLayers(net, "nnout"                     , "scaleNNPotentialLayer/Potential"   );
+    net = connectLayers(net, "cart2SphLayer/RadiusInvExt", "scaleNNPotentialLayer/RadiusInvExt");
 
     net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
-    net = connectLayers(net, "cart2sphLayer/Radius", "analyticModelLayer");
+    net = connectLayers(net, "cart2SphLayer/Radius"      , "analyticModelLayer/Radius"      );
+    net = connectLayers(net, "cart2SphLayer/RadiusInvExt", "analyticModelLayer/RadiusInvExt");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());
     net = connectLayers(net, "scaleNNPotentialLayer", "fuseModelsLayer/PotNN");
@@ -43,9 +44,9 @@ function net = FNO(params)
     net = addLayers(net, presets.layer.applyBoundaryConditionsLayer());
     net = connectLayers(net, "fuseModelsLayer"     , "applyBoundaryConditionsLayer/PotFused");
     net = connectLayers(net, "analyticModelLayer"  , "applyBoundaryConditionsLayer/PotLF"   );
-    net = connectLayers(net, "cart2sphLayer/Radius", "applyBoundaryConditionsLayer/Radius"  );
+    net = connectLayers(net, "cart2SphLayer/Radius", "applyBoundaryConditionsLayer/Radius"  );
     
     % Extra Output
     net = addLayers(net, identityLayer("Name", "RadiusOutput"));
-    net = connectLayers(net, "cart2sphLayer/Radius", "RadiusOutput");
+    net = connectLayers(net, "cart2SphLayer/Radius", "RadiusOutput");
 end
