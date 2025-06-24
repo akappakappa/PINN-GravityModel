@@ -19,7 +19,7 @@ classdef scaleNNPotentialLayer < nnet.layer.Layer & nnet.layer.Acceleratable & n
         function layer = scaleNNPotentialLayer(args)
             arguments
                 args.Name        = "scaleNNPotentialLayer"
-                args.InputNames  = ["Potential", "RadiusInvExt"]
+                args.InputNames  = ["Potential", "Radius"]
                 args.OutputNames = "Potential"
 
                 args.AnalyticModelPower = 1
@@ -32,8 +32,8 @@ classdef scaleNNPotentialLayer < nnet.layer.Layer & nnet.layer.Acceleratable & n
             layer.AnalyticModelPower = args.AnalyticModelPower;
         end
 
-        function Potential = predict(layer, Potential, RadiusInvExt)
-            Potential = Potential .* (RadiusInvExt .^ layer.AnalyticModelPower);
+        function Potential = predict(layer, Potential, Radius)
+            Potential = Potential ./ (Radius .^ layer.AnalyticModelPower);
         end
     end
 end

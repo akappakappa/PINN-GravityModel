@@ -13,7 +13,7 @@ classdef cart2SphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
             arguments
                 args.Name        = "cart2SphLayer"
                 args.InputNames  = "Trajectory"
-                args.OutputNames = ["Spherical", "Radius", "RadiusInvExt"]
+                args.OutputNames = ["Spherical", "Radius"]
             end
 
             layer.Name        = args.Name;
@@ -21,16 +21,15 @@ classdef cart2SphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
             layer.OutputNames = args.OutputNames;
         end
 
-        function [Spherical, Radius, RadiusInvExt] = predict(~, Trajectory)
+        function [Spherical, Radius] = predict(~, Trajectory)
             [x, y, z] = deal(Trajectory(1, :), Trajectory(2, :), Trajectory(3, :));
             
             r         = sqrt(x .^ 2 + y .^ 2 + z .^ 2);
             [s, t, u] = deal(x ./ r, y ./ r, z ./ r);
             [ri, re]  = deal(min(r, 1), 1 ./ max(r, 1));
 
-            Spherical    = cat(1, ri, re, s, t, u);
-            Radius       = r;
-            RadiusInvExt = re;
+            Spherical = cat(1, ri, re, s, t, u);
+            Radius    = r;
         end
     end
 end

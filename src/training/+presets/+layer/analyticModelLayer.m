@@ -26,7 +26,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
                 Mu
 
                 args.Name        = "analyticModelLayer"
-                args.InputNames  = ["Radius", "RadiusInvExt"]
+                args.InputNames  = "Radius"
                 args.OutputNames = "Potential"
 
                 args.Rref       = 0
@@ -49,8 +49,8 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
             end
         end
 
-        function Potential = predict(layer, Radius, RadiusInvExt)
-            Potential = -(layer.Mu .* RadiusInvExt);
+        function Potential = predict(layer, Radius)
+            Potential = -(layer.Mu ./ Radius);
             weight    = layer.WeightFunc(Radius);
             Potential = weight .* Potential;
         end

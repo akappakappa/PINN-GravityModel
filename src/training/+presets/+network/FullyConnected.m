@@ -33,12 +33,11 @@ function net = FullyConnected(params)
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
-    net = connectLayers(net, "nnout"                     , "scaleNNPotentialLayer/Potential"   );
-    net = connectLayers(net, "cart2SphLayer/RadiusInvExt", "scaleNNPotentialLayer/RadiusInvExt");
+    net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
+    net = connectLayers(net, "cart2SphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
     net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
-    net = connectLayers(net, "cart2SphLayer/Radius"      , "analyticModelLayer/Radius"      );
-    net = connectLayers(net, "cart2SphLayer/RadiusInvExt", "analyticModelLayer/RadiusInvExt");
+    net = connectLayers(net, "cart2SphLayer/Radius", "analyticModelLayer/Radius");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());
     net = connectLayers(net, "scaleNNPotentialLayer", "fuseModelsLayer/PotNN");
