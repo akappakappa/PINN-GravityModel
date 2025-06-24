@@ -17,23 +17,23 @@ function net = GM3S_sine(params)
         identityLayer("Name", "skip")
 
         fullyConnectedLayer(32)
-        presets.layer.sineLayer("Name", "act1")
+        presets.layer.sineLayer("Name", "act2")
         additionLayer(2, "Name", "add1")
 
         fullyConnectedLayer(32)
-        presets.layer.sineLayer("Name", "act1")
+        presets.layer.sineLayer("Name", "act3")
         additionLayer(2, "Name", "add2")
 
         fullyConnectedLayer(32)
-        presets.layer.sineLayer("Name", "act1")
+        presets.layer.sineLayer("Name", "act4")
         additionLayer(2, "Name", "add3")
 
         fullyConnectedLayer(32)
-        presets.layer.sineLayer("Name", "act1")
+        presets.layer.sineLayer("Name", "act5")
         additionLayer(2, "Name", "add4")
 
         fullyConnectedLayer(32)
-        presets.layer.sineLayer("Name", "act1")
+        presets.layer.sineLayer("Name", "act6")
         additionLayer(2, "Name", "add5")
 
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
