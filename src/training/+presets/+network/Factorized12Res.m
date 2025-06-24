@@ -1,4 +1,4 @@
-function net = Factorized12(params)
+function net = Factorized12Res(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -14,27 +14,22 @@ function net = Factorized12(params)
         ...
         presets.layer.factorizedLayer(32, 12, "Name", "fac1")
         geluLayer()
-        identityLayer("Name", "skip")
 
+        identityLayer("Name", "skip1")
         presets.layer.factorizedLayer(32, 12, "Name", "fac2")
         geluLayer()
-        additionLayer(2, "Name", "add1")
-
         presets.layer.factorizedLayer(32, 12, "Name", "fac3")
         geluLayer()
-        additionLayer(2, "Name", "add2")
-
         presets.layer.factorizedLayer(32, 12, "Name", "fac4")
+        additionLayer(2, "Name", "add1")
         geluLayer()
-        additionLayer(2, "Name", "add3")
 
+        identityLayer("Name", "skip2")
         presets.layer.factorizedLayer(32, 12, "Name", "fac5")
         geluLayer()
-        additionLayer(2, "Name", "add4")
-
         presets.layer.factorizedLayer(32, 12, "Name", "fac6")
+        additionLayer(2, "Name", "add2")
         geluLayer()
-        additionLayer(2, "Name", "add5")
 
         presets.layer.factorizedLayer(1, 1, "WeightsInitializer", "zeros")
         ...
@@ -42,11 +37,8 @@ function net = Factorized12(params)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip", "add1/in2");
-    net = connectLayers(net, "skip", "add2/in2");
-    net = connectLayers(net, "skip", "add3/in2");
-    net = connectLayers(net, "skip", "add4/in2");
-    net = connectLayers(net, "skip", "add5/in2");
+    net = connectLayers(net, "skip1", "add1/in2");
+    net = connectLayers(net, "skip2", "add2/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());

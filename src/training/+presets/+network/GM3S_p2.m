@@ -1,4 +1,4 @@
-function net = GM3P2(params)
+function net = GM3S_p2(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -61,7 +61,7 @@ function net = GM3P2(params)
     net = connectLayers(net, "scaleNNPotentialLayer", "fuseModelsLayer/PotNN");
     net = connectLayers(net, "analyticModelLayer"   , "fuseModelsLayer/PotLF");
 
-    net = addLayers(net, presets.layer.applyBoundaryConditionsLayer("Mode", "tanh"));
+    net = addLayers(net, presets.layer.applyBoundaryConditionsLayer());
     net = connectLayers(net, "fuseModelsLayer"     , "applyBoundaryConditionsLayer/PotFused");
     net = connectLayers(net, "analyticModelLayer"  , "applyBoundaryConditionsLayer/PotLF"   );
     net = connectLayers(net, "cart2SphLayer/Radius", "applyBoundaryConditionsLayer/Radius"  );

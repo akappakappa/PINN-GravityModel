@@ -1,4 +1,4 @@
-function net = GM3SP2(params)
+function net = GM3S_rbf(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,7 +12,7 @@ function net = GM3SP2(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(32)
+        presets.layer.rbfLayer(32)
         geluLayer()
         identityLayer("Name", "skip")
 
@@ -49,7 +49,7 @@ function net = GM3SP2(params)
     net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
-    net = addLayers(net, presets.layer.scaleNNPotentialLayer("AnalyticModelPower", 2));
+    net = addLayers(net, presets.layer.scaleNNPotentialLayer());
     net = connectLayers(net, "nnout"                     , "scaleNNPotentialLayer/Potential"   );
     net = connectLayers(net, "cart2SphLayer/RadiusInvExt", "scaleNNPotentialLayer/RadiusInvExt");
 

@@ -1,4 +1,4 @@
-function net = FC(params)
+function net = GM3S_sine(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -13,23 +13,40 @@ function net = FC(params)
         identityLayer("Name", "nnin")
         ...
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1", "Omega0", 10)
+        identityLayer("Name", "skip")
+
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1")
+        additionLayer(2, "Name", "add1")
+
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1")
+        additionLayer(2, "Name", "add2")
+
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1")
+        additionLayer(2, "Name", "add3")
+
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1")
+        additionLayer(2, "Name", "add4")
+
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1")
+        additionLayer(2, "Name", "add5")
+
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
+    net = connectLayers(net, "skip", "add1/in2");
+    net = connectLayers(net, "skip", "add2/in2");
+    net = connectLayers(net, "skip", "add3/in2");
+    net = connectLayers(net, "skip", "add4/in2");
+    net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());

@@ -14,6 +14,7 @@ function net = Autoencoder(params)
         ...
         fullyConnectedLayer(48)
         geluLayer()
+        identityLayer("Name", "skip")
         fullyConnectedLayer(32)
         geluLayer()
         fullyConnectedLayer(24)
@@ -25,6 +26,7 @@ function net = Autoencoder(params)
         fullyConnectedLayer(32)
         geluLayer()
         fullyConnectedLayer(48)
+        additionLayer(2, "Name", "add")
         geluLayer()
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
@@ -32,6 +34,7 @@ function net = Autoencoder(params)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
+    net = connectLayers(net, "skip", "add/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());

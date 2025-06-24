@@ -14,22 +14,39 @@ function net = Factorized32(params)
         ...
         presets.layer.factorizedLayer(32, 32, "Name", "fac1")
         geluLayer()
+        identityLayer("Name", "skip")
+
         presets.layer.factorizedLayer(32, 32, "Name", "fac2")
         geluLayer()
+        additionLayer(2, "Name", "add1")
+
         presets.layer.factorizedLayer(32, 32, "Name", "fac3")
         geluLayer()
+        additionLayer(2, "Name", "add2")
+
         presets.layer.factorizedLayer(32, 32, "Name", "fac4")
         geluLayer()
+        additionLayer(2, "Name", "add3")
+
         presets.layer.factorizedLayer(32, 32, "Name", "fac5")
         geluLayer()
+        additionLayer(2, "Name", "add4")
+
         presets.layer.factorizedLayer(32, 32, "Name", "fac6")
         geluLayer()
-        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
+        additionLayer(2, "Name", "add5")
+
+        presets.layer.factorizedLayer(1, 1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
+    net = connectLayers(net, "skip", "add1/in2");
+    net = connectLayers(net, "skip", "add2/in2");
+    net = connectLayers(net, "skip", "add3/in2");
+    net = connectLayers(net, "skip", "add4/in2");
+    net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
