@@ -67,8 +67,8 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
                         layer.W1  = dlarray(U * sqrt(S));
                         layer.W2  = dlarray(sqrt(S) * V');
                     case "zeros"
-                        layer.W1  = dlarray(zeros(outChannels, R));
-                        layer.W2  = dlarray(zeros(R, inChannels));
+                        layer.W1  = dlarray(1e-3 * ones(outChannels, R));
+                        layer.W2  = dlarray(1e-3 * ones(R, inChannels));
                 end
             end
 
