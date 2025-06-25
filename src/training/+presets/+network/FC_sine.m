@@ -1,4 +1,4 @@
-function net = FullyConnected(params)
+function net = FC_sine(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -13,17 +13,17 @@ function net = FullyConnected(params)
         identityLayer("Name", "nnin")
         ...
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act1", "Omega0", 10)
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act2")
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act3")
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act4")
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act5")
         fullyConnectedLayer(32)
-        geluLayer()
+        presets.layer.sineLayer("Name", "act6")
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")

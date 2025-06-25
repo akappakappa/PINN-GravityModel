@@ -1,4 +1,4 @@
-function net = FullyConnected(params)
+function net = FC_p2(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -32,7 +32,7 @@ function net = FullyConnected(params)
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
 
     % Posprocessing
-    net = addLayers(net, presets.layer.scaleNNPotentialLayer());
+    net = addLayers(net, presets.layer.scaleNNPotentialLayer("AnalyticModelPower", 2));
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2SphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 

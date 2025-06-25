@@ -1,4 +1,4 @@
-function net = FullyConnected(params)
+function net = FC_rbf(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,7 +12,7 @@ function net = FullyConnected(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(32)
+        presets.layer.rbfLayer(32)
         geluLayer()
         fullyConnectedLayer(32)
         geluLayer()

@@ -1,4 +1,4 @@
-function net = FullyConnected(params)
+function net = FC_mod_gate(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -14,6 +14,8 @@ function net = FullyConnected(params)
         ...
         fullyConnectedLayer(32)
         geluLayer()
+        presets.layer.modulationLayer()
+        presets.layer.gateLayer()
         fullyConnectedLayer(32)
         geluLayer()
         fullyConnectedLayer(32)
