@@ -8,8 +8,7 @@ function [] = plotGeneralization(GeneralizationRadius, GeneralizationMetric, Gen
     set(gca, 'YScale', 'log');
     xlim([0, 20]);
     grid on;
-    xlabel('Distance (R)');
-    ylabel('Mean Percent Error (MPE)');
-    title('Generalization: MPE vs. Distance (R)');
+    xlabel('Distance (R)', 'FontSize', 12, 'FontWeight', 'bold', 'FontName', 'Palatino Linotype');
+    ylabel('Percent Error', 'FontSize', 12, 'FontWeight', 'bold', 'FontName', 'Palatino Linotype');
     legend('show'); 
 end

@@ -8,7 +8,7 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     % XZ Plane
     %figure;
     %subplot(1,3,3);
-    nexttile
+    ax = nexttile;
 
     % Parameters
     y0 = 0;
@@ -40,13 +40,22 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     surf(X, Zgrid, zeros(size(logErr)), logErr, 'EdgeColor', 'none');
     view(2);
     axis equal tight;
+    axis off;
+    xlim ([-3.5 3.5])
+    ylim ([-3.5 3.5])
     colormap jet;
     grid off;
     % Step 3: Set color axis and colorbar ticks
     clim([-2 2])  % log10 scale from 10^-3 to 10^3
 
+    text(0.5, -0.05, 0, 'XZ Plane', ...
+     'Units', 'normalized', ...
+     'HorizontalAlignment', 'center', ...
+     'FontSize', 20, 'FontWeight', 'bold', ...
+     'Parent', ax)
+
     % XY Plane
-    nexttile
+    ax = nexttile;
 
     % Parameters
     z0 = 0;            % Choose the z-slice
@@ -77,18 +86,27 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     % Step 2: Plot using surf with log10 data
     surf(X, Y, zeros(size(logErr)), logErr, 'EdgeColor', 'none');
     view(2);
+    xlim ([-3.5 3.5])
+    ylim ([-3.5 3.5])
     axis equal tight;
+    axis off;
     colormap jet;
     grid off;
 
     % Step 3: Set color axis and colorbar ticks
     clim([-2 2])  % log10 scale from 10^-3 to 10^3
+
+    text(0.5, -0.05, 0, 'XY Plane', ...
+     'Units', 'normalized', ...
+     'HorizontalAlignment', 'center', ...
+     'FontSize', 20, 'FontWeight', 'bold', ...
+     'Parent', ax)
    
     % YZ Plane
     % Parameters
     %figure;
     %subplot(1,3,2);
-    nexttile
+    ax = nexttile;
 
     x0 = 0;
     tol = 1e-6;
@@ -119,17 +137,27 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     surf(Y, Zgrid, zeros(size(logErr)), logErr, 'EdgeColor', 'none');
     view(2);
     axis equal tight;
+    axis off;
+    xlim ([-3.5 3.5])
+    ylim ([-3.5 3.5])
     colormap jet;
     grid off;
 
     % Step 3: Set color axis and colorbar ticks
     clim([-2 2])  % log10 scale from 10^-3 to 10^3
+
+    text(0.5, -0.05, 0, 'YZ Plane', ...
+     'Units', 'normalized', ...
+     'HorizontalAlignment', 'center', ...
+     'FontSize', 20, 'FontWeight', 'bold', ...
+     'Parent', ax)
     
     cb = colorbar;
     log_ticks = -2:1:2;
     cb.Ticks = log_ticks;
     cb.TickLabels = arrayfun(@(x) sprintf('10^{%d}', x), log_ticks, 'UniformOutput', false);
-    ylabel(cb, 'Error Magnitude (log scale)', 'FontWeight', 'bold')
-   
+    ylabel(cb, 'Percent Error', 'FontWeight', 'bold', 'FontSize', 12)
+    cb.FontName = 'Palatino Linotype';
+    set(colorbar,'visible','off')
 
 end
