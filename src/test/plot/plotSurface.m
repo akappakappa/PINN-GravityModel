@@ -1,4 +1,4 @@
-function [] = plotSurface(SurfaceTRJ,SurfaceMetric, i)
+function [] = plotSurface(SurfaceTRJ,SurfaceMetric)
     % Surface Metric
     figure;
     points = extractdata(SurfaceTRJ)';
@@ -7,7 +7,6 @@ function [] = plotSurface(SurfaceTRJ,SurfaceMetric, i)
     
     %t = tiledlayout(1, 3, 'TileSpacing', 'none', 'Padding', 'none');
     ax = subplot(1,3,1);
-    i = i+1;
     lims = [-1 1];
     % Front view
     %ax1 = nexttile;
@@ -47,7 +46,6 @@ function [] = plotSurface(SurfaceTRJ,SurfaceMetric, i)
     % Side view
     %ax2 = nexttile;
     ax = subplot(1,3,2);
-    i = i+1;
     scatter3(points(:,1), points(:,2), points(:,3), 25, logerrors, "filled");
     clim([-2 2])  % log10 scale from 10^-3 to 10^3
     view(2);
