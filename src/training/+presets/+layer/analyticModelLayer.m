@@ -31,7 +31,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
 
                 args.Rref       = 0
                 args.Smoothness = 0.5
-                args.FadeIn     = true
+                args.FadeIn     = false
             end
 
             layer.Name        = args.Name;
