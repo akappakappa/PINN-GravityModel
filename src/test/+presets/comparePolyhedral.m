@@ -18,7 +18,7 @@ function [loss, Radius] = comparePolyhedral(TRJ, ACC, ~, pTRJ, pACC, ~)
     % Loss
     AbsoluteLoss = vecnorm(pACC - ACC);
     PercentLoss  = AbsoluteLoss ./ vecnorm(ACC);
-    PercentLoss(Inf == PercentLoss) = 0;   % Fix division by zero
+    PercentLoss(~isfinite(PercentLoss)) = 0;
     
     loss = PercentLoss * 100;
 end

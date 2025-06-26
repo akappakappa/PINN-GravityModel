@@ -15,7 +15,7 @@ function [loss, Radius] = mpeLoss(net, TRJ, ACC, ~)
     % Loss
     AbsoluteLoss = vecnorm(pACC - ACC);
     PercentLoss  = AbsoluteLoss ./ vecnorm(ACC);
-    PercentLoss(Inf == PercentLoss) = 0;   % Fix division by zero
+    PercentLoss(~isfinite(PercentLoss)) = 0;
     
     loss = PercentLoss * 100;
 end

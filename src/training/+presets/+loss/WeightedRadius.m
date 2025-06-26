@@ -17,7 +17,7 @@ function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, args)
 
     AbsoluteLoss = vecnorm(pACC - ACC);
     PercentLoss  = AbsoluteLoss ./ vecnorm(ACC);
-    PercentLoss(Inf == PercentLoss) = 0;
+    PercentLoss(~isfinite(PercentLoss)) = 0;
 
     loss = AbsoluteLoss + PercentLoss;
 

@@ -33,7 +33,7 @@ classdef scaleNNPotentialLayer < nnet.layer.Layer & nnet.layer.Acceleratable & n
         end
 
         function Potential = predict(layer, Potential, Radius)
-            Potential = Potential ./ (Radius .^ layer.AnalyticModelPower);
+            Potential = Potential ./ (max(Radius, 1) .^ layer.AnalyticModelPower);
         end
     end
 end

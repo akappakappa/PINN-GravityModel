@@ -16,7 +16,7 @@ function [loss, gradients, state] = PINN_GM_III(net, TRJ, ACC, ~, args)
 
     AbsoluteLoss = vecnorm(pACC - ACC);
     PercentLoss  = AbsoluteLoss ./ vecnorm(ACC);
-    PercentLoss(Inf == PercentLoss) = 0;
+    PercentLoss(~isfinite(PercentLoss)) = 0;
 
     loss = AbsoluteLoss + PercentLoss;
     loss = mean(loss, 2);

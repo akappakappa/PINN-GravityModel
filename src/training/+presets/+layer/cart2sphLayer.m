@@ -24,8 +24,11 @@ classdef cart2SphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
         function [Spherical, Radius] = predict(~, Trajectory)
             [x, y, z] = deal(Trajectory(1, :), Trajectory(2, :), Trajectory(3, :));
             
-            r         = sqrt(x .^ 2 + y .^ 2 + z .^ 2);
-            [s, t, u] = deal(x ./ r, y ./ r, z ./ r);
+            r           = sqrt(x .^ 2 + y .^ 2 + z .^ 2);
+            [s, t, u]   = deal(x ./ r, y ./ r, z ./ r);
+            s(~isfinite(s)) = 0;
+            t(~isfinite(t)) = 0;
+            u(~isfinite(u)) = 0;
             [ri, re]  = deal(min(r, 1), 1 ./ max(r, 1));
 
             Spherical = cat(1, ri, re, s, t, u);

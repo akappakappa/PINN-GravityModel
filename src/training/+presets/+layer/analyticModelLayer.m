@@ -51,6 +51,7 @@ classdef analyticModelLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet
 
         function Potential = predict(layer, Radius)
             Potential = -(layer.Mu ./ Radius);
+            Potential(~isfinite(Potential)) = 0;
             weight    = layer.WeightFunc(Radius);
             Potential = weight .* Potential;
         end
