@@ -1,4 +1,4 @@
-function net = Factorized12(params)
+function net = GM3(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,31 +12,31 @@ function net = Factorized12(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        presets.layer.factorizedLayer(32, 12, "Name", "fac1")
+        fullyConnectedLayer(32)
         geluLayer()
         identityLayer("Name", "skip")
 
-        presets.layer.factorizedLayer(32, 12, "Name", "fac2")
+        fullyConnectedLayer(32)
         geluLayer()
         additionLayer(2, "Name", "add1")
 
-        presets.layer.factorizedLayer(32, 12, "Name", "fac3")
+        fullyConnectedLayer(32)
         geluLayer()
         additionLayer(2, "Name", "add2")
 
-        presets.layer.factorizedLayer(32, 12, "Name", "fac4")
+        fullyConnectedLayer(32)
         geluLayer()
         additionLayer(2, "Name", "add3")
 
-        presets.layer.factorizedLayer(32, 12, "Name", "fac5")
+        fullyConnectedLayer(32)
         geluLayer()
         additionLayer(2, "Name", "add4")
 
-        presets.layer.factorizedLayer(32, 12, "Name", "fac6")
+        fullyConnectedLayer(32)
         geluLayer()
         additionLayer(2, "Name", "add5")
 
-        presets.layer.factorizedLayer(1, 1, "WeightsInitializer", "zeros")
+        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];

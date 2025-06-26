@@ -1,4 +1,4 @@
-function net = GM3S_rbf(params)
+function net = f_RES1(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,29 +12,33 @@ function net = GM3S_rbf(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        presets.layer.rbfLayer(32)
-        geluLayer()
-        identityLayer("Name", "skip")
-
         fullyConnectedLayer(32)
         geluLayer()
+
+        identityLayer("Name", "skip1")
+        fullyConnectedLayer(32)
         additionLayer(2, "Name", "add1")
-
-        fullyConnectedLayer(32)
         geluLayer()
+
+        identityLayer("Name", "skip2")
+        fullyConnectedLayer(32)
         additionLayer(2, "Name", "add2")
-
-        fullyConnectedLayer(32)
         geluLayer()
+
+        identityLayer("Name", "skip3")
+        fullyConnectedLayer(32)
         additionLayer(2, "Name", "add3")
-
-        fullyConnectedLayer(32)
         geluLayer()
+        
+        identityLayer("Name", "skip4")
+        fullyConnectedLayer(32)
         additionLayer(2, "Name", "add4")
-
-        fullyConnectedLayer(32)
         geluLayer()
+
+        identityLayer("Name", "skip5")
+        fullyConnectedLayer(32)
         additionLayer(2, "Name", "add5")
+        geluLayer()
 
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
@@ -42,18 +46,18 @@ function net = GM3S_rbf(params)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip", "add1/in2");
-    net = connectLayers(net, "skip", "add2/in2");
-    net = connectLayers(net, "skip", "add3/in2");
-    net = connectLayers(net, "skip", "add4/in2");
-    net = connectLayers(net, "skip", "add5/in2");
+    net = connectLayers(net, "skip1", "add1/in2");
+    net = connectLayers(net, "skip2", "add2/in2");
+    net = connectLayers(net, "skip3", "add3/in2");
+    net = connectLayers(net, "skip4", "add4/in2");
+    net = connectLayers(net, "skip5", "add5/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2SphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
+    net = addLayers(net, presets.layer.analyticModelLayer(params.mu, "FadeIn", true));
     net = connectLayers(net, "cart2SphLayer/Radius", "analyticModelLayer/Radius");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());

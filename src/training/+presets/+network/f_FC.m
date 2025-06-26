@@ -1,4 +1,4 @@
-function net = GM3S_mod_gate(params)
+function net = f_FC(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -14,29 +14,21 @@ function net = GM3S_mod_gate(params)
         ...
         fullyConnectedLayer(32)
         geluLayer()
-        presets.layer.modulationLayer()
-        presets.layer.gateLayer()
-        identityLayer("Name", "skip")
 
         fullyConnectedLayer(32)
         geluLayer()
-        additionLayer(2, "Name", "add1")
 
         fullyConnectedLayer(32)
         geluLayer()
-        additionLayer(2, "Name", "add2")
 
         fullyConnectedLayer(32)
         geluLayer()
-        additionLayer(2, "Name", "add3")
 
         fullyConnectedLayer(32)
         geluLayer()
-        additionLayer(2, "Name", "add4")
 
         fullyConnectedLayer(32)
         geluLayer()
-        additionLayer(2, "Name", "add5")
 
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
@@ -44,18 +36,13 @@ function net = GM3S_mod_gate(params)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip", "add1/in2");
-    net = connectLayers(net, "skip", "add2/in2");
-    net = connectLayers(net, "skip", "add3/in2");
-    net = connectLayers(net, "skip", "add4/in2");
-    net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2SphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
+    net = addLayers(net, presets.layer.analyticModelLayer(params.mu, "FadeIn", true));
     net = connectLayers(net, "cart2SphLayer/Radius", "analyticModelLayer/Radius");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());

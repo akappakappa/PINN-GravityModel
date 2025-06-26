@@ -1,4 +1,4 @@
-function net = Residual(params)
+function net = FC(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -15,20 +15,19 @@ function net = Residual(params)
         fullyConnectedLayer(32)
         geluLayer()
 
-        identityLayer("Name", "skip1")
         fullyConnectedLayer(32)
-        geluLayer()
-        fullyConnectedLayer(32)
-        geluLayer()
-        fullyConnectedLayer(32)
-        additionLayer(2, "Name", "add1")
         geluLayer()
 
-        identityLayer("Name", "skip2")
         fullyConnectedLayer(32)
         geluLayer()
+
         fullyConnectedLayer(32)
-        additionLayer(2, "Name", "add2")
+        geluLayer()
+
+        fullyConnectedLayer(32)
+        geluLayer()
+
+        fullyConnectedLayer(32)
         geluLayer()
 
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
@@ -37,8 +36,6 @@ function net = Residual(params)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip1", "add1/in2");
-    net = connectLayers(net, "skip2", "add2/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());

@@ -1,4 +1,4 @@
-function net = GM3S_p2(params)
+function net = AUTENC(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,29 +12,32 @@ function net = GM3S_p2(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(32)
+        fullyConnectedLayer(48)
         geluLayer()
-        identityLayer("Name", "skip")
+        identityLayer("Name", "skip1")
 
         fullyConnectedLayer(32)
         geluLayer()
-        additionLayer(2, "Name", "add1")
+        identityLayer("Name", "skip2")
 
-        fullyConnectedLayer(32)
+        fullyConnectedLayer(24)
         geluLayer()
-        additionLayer(2, "Name", "add2")
+        identityLayer("Name", "skip3")
 
-        fullyConnectedLayer(32)
+        fullyConnectedLayer(12, "Name", "latent")
         geluLayer()
+
+        fullyConnectedLayer(24)
         additionLayer(2, "Name", "add3")
+        geluLayer()
 
         fullyConnectedLayer(32)
+        additionLayer(2, "Name", "add2")
         geluLayer()
-        additionLayer(2, "Name", "add4")
 
-        fullyConnectedLayer(32)
+        fullyConnectedLayer(48)
+        additionLayer(2, "Name", "add1")
         geluLayer()
-        additionLayer(2, "Name", "add5")
 
         fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
@@ -42,14 +45,12 @@ function net = GM3S_p2(params)
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip", "add1/in2");
-    net = connectLayers(net, "skip", "add2/in2");
-    net = connectLayers(net, "skip", "add3/in2");
-    net = connectLayers(net, "skip", "add4/in2");
-    net = connectLayers(net, "skip", "add5/in2");
+    net = connectLayers(net, "skip1", "add1/in2");
+    net = connectLayers(net, "skip2", "add2/in2");
+    net = connectLayers(net, "skip3", "add3/in2");
 
     % Posprocessing
-    net = addLayers(net, presets.layer.scaleNNPotentialLayer("AnalyticModelPower", 2));
+    net = addLayers(net, presets.layer.scaleNNPotentialLayer());
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2SphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 

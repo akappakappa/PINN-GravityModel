@@ -1,4 +1,4 @@
-function net = Autoencoder(params)
+function net = FAC20(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,29 +12,41 @@ function net = Autoencoder(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        fullyConnectedLayer(48)
+        presets.layer.factorizedLayer(32, 20, "Name", "fac1")
         geluLayer()
         identityLayer("Name", "skip")
-        fullyConnectedLayer(32)
+
+        presets.layer.factorizedLayer(32, 20, "Name", "fac2")
         geluLayer()
-        fullyConnectedLayer(24)
+        additionLayer(2, "Name", "add1")
+
+        presets.layer.factorizedLayer(32, 20, "Name", "fac3")
         geluLayer()
-        fullyConnectedLayer(12, "Name", "latent")
+        additionLayer(2, "Name", "add2")
+
+        presets.layer.factorizedLayer(32, 20, "Name", "fac4")
         geluLayer()
-        fullyConnectedLayer(24)
+        additionLayer(2, "Name", "add3")
+
+        presets.layer.factorizedLayer(32, 20, "Name", "fac5")
         geluLayer()
-        fullyConnectedLayer(32)
+        additionLayer(2, "Name", "add4")
+
+        presets.layer.factorizedLayer(32, 20, "Name", "fac6")
         geluLayer()
-        fullyConnectedLayer(48)
-        additionLayer(2, "Name", "add")
-        geluLayer()
-        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
+        additionLayer(2, "Name", "add5")
+
+        presets.layer.factorizedLayer(1, 1, "WeightsInitializer", "zeros")
         ...
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
-    net = connectLayers(net, "skip", "add/in2");
+    net = connectLayers(net, "skip", "add1/in2");
+    net = connectLayers(net, "skip", "add2/in2");
+    net = connectLayers(net, "skip", "add3/in2");
+    net = connectLayers(net, "skip", "add4/in2");
+    net = connectLayers(net, "skip", "add5/in2");
 
     % Posprocessing
     net = addLayers(net, presets.layer.scaleNNPotentialLayer());
