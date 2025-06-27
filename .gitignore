@@ -1,6 +1,7 @@
 # Irrelevant or too big files (e.g. data, models, etc.)
 latex/
 Examples/
+fig/
 # src/preprocessing/trainingData*.mat
 # src/preprocessing/metricsData*.mat
 src/training/net*.mat

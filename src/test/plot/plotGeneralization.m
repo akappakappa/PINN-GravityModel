@@ -1,4 +1,4 @@
-function [] = plotGeneralization(GeneralizationRadius, GeneralizationMetric, GeneralizationRadiusPoly, GeneralizationPoly)
+function [] = plotGeneralization(nname, GeneralizationRadius, GeneralizationMetric, GeneralizationRadiusPoly, GeneralizationPoly)
     % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
     figure;
     hold on;
@@ -12,4 +12,6 @@ function [] = plotGeneralization(GeneralizationRadius, GeneralizationMetric, Gen
     xlabel('Distance (R)', 'FontSize', 12, 'FontWeight', 'bold', 'FontName', 'Palatino Linotype');
     ylabel('Percent Error', 'FontSize', 12, 'FontWeight', 'bold', 'FontName', 'Palatino Linotype');
     legend('show'); 
+
+    exportgraphics(gcf, "../../fig/" + nname + "/GNR_" + nname + ".png", 'Resolution', 300);
 end

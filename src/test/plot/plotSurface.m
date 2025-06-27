@@ -1,4 +1,4 @@
-function [] = plotSurface(SurfaceTRJ,SurfaceMetric)
+function [] = plotSurface(nname, saveyesno, SurfaceTRJ,SurfaceMetric)
     % Surface Metric
     figure;
     points = extractdata(SurfaceTRJ)';
@@ -127,4 +127,8 @@ function [] = plotSurface(SurfaceTRJ,SurfaceMetric)
     cb.FontName = 'Palatino Linotype';
     set(colorbar,'visible','off')
     view(0,90);
+
+    if true == saveyesno
+        exportgraphics(gcf, "../../fig/" + nname + "/SRF_" + nname + ".png", 'Resolution', 300);
+    end
 end

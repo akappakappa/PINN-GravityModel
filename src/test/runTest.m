@@ -7,8 +7,9 @@ metricsFolder   = "src/preprocessing/datastore/metrics/";
 headless        = batchStartupOptionUsed;
 
 % Preparations - Data
-data = mLoadData("src/preprocessing/metricsData.mat");
-net  = load("src/training/net.mat").net;
+data  = mLoadData("src/preprocessing/metricsData.mat");
+nname = "net";
+net   = load("src/training/" + nname + ".mat").net;
 
 % Compute metrics
 % ---------------------------------------------------------- | Preset func -- | NN | Trajectory Data ------------- | Acceleration Data ----------- | Potential Data -------------- |
@@ -20,12 +21,12 @@ net  = load("src/training/net.mat").net;
 [SurfaceMetric              , SurfaceRadius       ] = dlfeval(@presets.mpeLoss, net, data.mSurfaceTRJ              , data.mSurfaceACC              , data.mSurfacePOT              );
 
 fprintf("\n### Mean Percent Error (MPE) ###\n");
-fprintf("Planes metric                   : %f\n", mean(PlanesMetric               ));
-fprintf("Generalization metric [0R:1R]   : %f\n", mean(GeneralizationMetric_0_1   ));
-fprintf("Generalization metric [1R:10R]  : %f\n", mean(GeneralizationMetric_1_10  ));
-fprintf("Generalization metric [10R:100R]: %f\n", mean(GeneralizationMetric_10_100));
-fprintf("Generalization metric [0R:100R] : %f\n", mean(GeneralizationMetric       ));
-fprintf("Surface metric                  : %f\n", mean(SurfaceMetric              ));
+fprintf("GNR TOT          : %f\n", mean(GeneralizationMetric       ));
+fprintf("GNR INTERIOR     : %f\n", mean(GeneralizationMetric_0_1   ));
+fprintf("GNR EXTERIOR     : %f\n", mean(GeneralizationMetric_1_10  ));
+fprintf("GNR EXTRAPOLATION: %f\n", mean(GeneralizationMetric_10_100));
+fprintf("SRF              : %f\n", mean(SurfaceMetric              ));
+fprintf("PLN              : %f\n", mean(PlanesMetric               ));
 
 % Compute Polyhedral comparison
 [PlanesPoly               , PlanesRadiusPoly        ] = presets.comparePolyhedral(data.mPlanesTRJ               , data.mPlanesACC               , data.mPlanesPOT               , data.pPlanesTRJ               , data.pPlanesACC               , data.pPlanesPOT               );
@@ -41,8 +42,21 @@ if headless
     return;
 end
 
+if ~exist("../../fig", 'dir')
+    mkdir("../../fig");
+end
+if ~exist(fullfile("../../fig", nname), 'dir')
+    mkdir(fullfile("../../fig", nname));
+end
+
+labels = {'GNR TOT'; 'GNR INTERIOR'; 'GNR EXTERIOR'; 'GNR EXTRAPOLATION'; 'SRF'; 'PLN'};
+values = [mean(GeneralizationMetric); mean(GeneralizationMetric_0_1); mean(GeneralizationMetric_1_10); mean(GeneralizationMetric_10_100); mean(SurfaceMetric); mean(PlanesMetric)];
+T = table(labels, values);
+T.Properties.VariableNames = {'Metric', 'Value'};
+writetable(T, "../../fig/" + nname + "/MTR.csv");
+
 % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
-plotGeneralization(GeneralizationRadius, GeneralizationMetric, GeneralizationRadiusPoly, GeneralizationPoly);
+plotGeneralization(nname, GeneralizationRadius, GeneralizationMetric, GeneralizationRadiusPoly, GeneralizationPoly);
 
 % TODO: Predict potentials within the network
 %actNN               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'scaleNNPotentialLayer');
@@ -69,12 +83,12 @@ plotGeneralization(GeneralizationRadius, GeneralizationMetric, GeneralizationRad
 
 
 % Planes Metric
-plotPlanes(data.mPlanesTRJ, PlanesMetric);
-plotPlanes(data.pPlanesTRJ, PlanesPoly);
+plotPlanes(nname, true, data.mPlanesTRJ, PlanesMetric);
+plotPlanes(nname, false, data.pPlanesTRJ, PlanesPoly);
 
 % Surface Metric
-plotSurface(data.mSurfaceTRJ, SurfaceMetric);
-plotSurface(data.pSurfaceTRJ, SurfacePoly);
+plotSurface(nname, true, data.mSurfaceTRJ, SurfaceMetric);
+plotSurface(nname, false, data.pSurfaceTRJ, SurfacePoly);
 
 % clearvars
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING

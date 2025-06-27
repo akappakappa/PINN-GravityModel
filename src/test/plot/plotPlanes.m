@@ -1,4 +1,4 @@
-function [] = plotPlanes(PlanesTRJ,PlanesMetric)
+function [] = plotPlanes(nname, saveyesno, PlanesTRJ,PlanesMetric)
     % Planes Metric
     points = extractdata(PlanesTRJ)';
     errors = extractdata(PlanesMetric)';
@@ -160,4 +160,7 @@ function [] = plotPlanes(PlanesTRJ,PlanesMetric)
     cb.FontName = 'Palatino Linotype';
     set(colorbar,'visible','off')
 
+    if true == saveyesno
+        exportgraphics(gcf, "../../fig/" + nname + "/PLN_" + nname + ".png", 'Resolution', 300);
+    end
 end
