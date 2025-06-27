@@ -1,4 +1,4 @@
-function net = z_FNO(params)
+function net = f_FC_p2(params)
     net = dlnetwork();
 
     % Feature Engineering
@@ -12,28 +12,37 @@ function net = z_FNO(params)
     layersNN = [
         identityLayer("Name", "nnin")
         ...
-        functionLayer(@(X) dlarray(reshape(X, [1, 5, size(X, 2)]), "SCB"), "Acceleratable", true, "Formattable", true)
-        convolution1dLayer(1, 24)
-        presets.layer.fnoLayer(24, 4, "Name", "fno1")
+        fullyConnectedLayer(32)
         geluLayer()
-        presets.layer.fnoLayer(24, 2, "Name", "fno2")
+
+        fullyConnectedLayer(32)
         geluLayer()
-        convolution1dLayer(1, 32)
+
+        fullyConnectedLayer(32)
         geluLayer()
-        convolution1dLayer(1, 1, "WeightsInitializer", "zeros")
+
+        fullyConnectedLayer(32)
+        geluLayer()
+
+        fullyConnectedLayer(32)
+        geluLayer()
+
+        fullyConnectedLayer(32)
+        geluLayer()
+
+        fullyConnectedLayer(1, "WeightsInitializer", "zeros")
         ...
-        functionLayer(@(X) dlarray(reshape(X, [1, size(X, 3)]), "CB"), "Acceleratable", true, "Formattable", true)
         identityLayer("Name", "nnout")
     ];
     net = addLayers(net, layersNN);
     net = connectLayers(net, "cart2SphLayer/Spherical", "nnin");
 
     % Posprocessing
-    net = addLayers(net, presets.layer.scaleNNPotentialLayer());
+    net = addLayers(net, presets.layer.scaleNNPotentialLayer("AnalyticModelPower", 2));
     net = connectLayers(net, "nnout"               , "scaleNNPotentialLayer/Potential");
     net = connectLayers(net, "cart2SphLayer/Radius", "scaleNNPotentialLayer/Radius"   );
 
-    net = addLayers(net, presets.layer.analyticModelLayer(params.mu));
+    net = addLayers(net, presets.layer.analyticModelLayer(params.mu, "FadeIn", true));
     net = connectLayers(net, "cart2SphLayer/Radius", "analyticModelLayer/Radius");
 
     net = addLayers(net, presets.layer.fuseModelsLayer());
