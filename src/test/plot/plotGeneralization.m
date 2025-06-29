@@ -5,8 +5,8 @@ function [] = plotGeneralization(nname, GeneralizationRadius, GeneralizationMetr
     xregion(0 , 1  , "FaceColor", [ 99  99  99] ./ 255, "EdgeColor", [0.5 0.5 0.5], "DisplayName", "Interior"     );
     xregion(1 , 10 , "FaceColor", [149 149 149] ./ 255, "EdgeColor", [0.5 0.5 0.5], "DisplayName", "Exterior"     );
     xregion(10, 100, "FaceColor", [199 199 199] ./ 255, "EdgeColor", [0.5 0.5 0.5], "DisplayName", "Extrapolation"); 
-    semilogy(extractdata(GeneralizationRadiusPoly), extractdata(GeneralizationPoly)  , '.', "MarkerSize", 6, "Color", [99 149 224] ./ 255, "DisplayName", "Polyhedral"    );
-    semilogy(extractdata(GeneralizationRadius)    , extractdata(GeneralizationMetric), '.', "MarkerSize", 6, "Color", [224 49 49] ./ 255, "DisplayName", "Generalization");
+    semilogy(extractdata(GeneralizationRadiusPoly), extractdata(GeneralizationPoly)  , '.', "MarkerSize", 6, "Color", [ 99 149 224] ./ 255, "DisplayName", "Polyhedral"    );
+    semilogy(extractdata(GeneralizationRadius)    , extractdata(GeneralizationMetric), '.', "MarkerSize", 6, "Color", [224  49  49] ./ 255, "DisplayName", "Generalization");
 
     set(gca, "YScale", "log");
     xlim([0 20]);
