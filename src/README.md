@@ -1,5 +1,5 @@
 # Code preview
-MATLAB R2025a is used for the implementation of the project. \
+MATLAB R2025a is used for the implementation of the project.  
 The code entry-point is [main](main.m), which conditionally launches all the routines.
 
 ## [Data Extraction](data/runData.m)
@@ -8,23 +8,23 @@ Extracts python-pickle data from the [dataset folder](data/Trajectories/), gener
 **NOTE** set [DO_DATA_EXTRACTION](main.m#L15) to `false` to skip the execution of this file, if you don't want to install the required Python dependencies, as pre-extracted data is included in the repo.
 
 ## [Preprocessing](preprocessing/runPreprocessing.m)
-Computes $\mu=GM$ parameter for the Low-Fidelity Analytical Model that will be fused to the Neural Network predictions. \
-Non-dimensionalizes the dataset according to \
-$x^*=R,\quad U^*=max_i(|\bar{U}_i-\bar{U}_{LF,i}|),\quad a^*=\frac{x^*}{{t^*}^2},\quad t^*=\sqrt{\frac{{x^*}^2}{U^*}}$ \
+Computes $\mu=GM$ parameter for the Low-Fidelity Analytical Model that will be fused to the Neural Network predictions.  
+Non-dimensionalizes the dataset according to  
+$x^*=R,\quad U^*=max_i(|\bar{U}_i-\bar{U}_{LF,i}|),\quad a^*=\frac{x^*}{{t^*}^2},\quad t^*=\sqrt{\frac{{x^*}^2}{U^*}}$  
 Splits the dataset with a ratio 99:1 into training:validation sets.
 
 **NOTE** set [DO_PREPROCESSING](main.m#L16) to `false` to skip the execution of this file, as pre-extracted data is included in the repo.
 
 ## [Training](training/runTraining.m)
-Contains the main training loop and [presets](training/+presets) for custom layers, losses, network structures, training options, and learnrate schedulers. \
-Specifically, the loss function leverages *autodiff* to compute the gradients of the predicted potential wrt input Cartesian coordinates, emebdding the physical constraint: $\mathbf{a}=-\nabla U$. \
-$L=\frac{1}{N}\sum_{i=0}^N\left(\left\|-\nabla\hat{U}(\mathbf{x}_i)-\mathbf{a}_i\right\|+\frac{\left\|-\nabla\hat{U}(\mathbf{x}_i)-\mathbf{a}_i\right\|}{\left\|\mathbf{a}_i\right\|}\right)$ \
+Contains the main training loop and [presets](training/+presets) for custom layers, losses, network structures, training options, and learnrate schedulers.  
+Specifically, the loss function leverages *autodiff* to compute the gradients of the predicted potential wrt input Cartesian coordinates, emebdding the physical constraint: $\mathbf{a}=-\nabla U$.  
+$L=\frac{1}{N}\sum_{i=0}^N\left(\left\|-\nabla\hat{U}(\mathbf{x}_i)-\mathbf{a}_i\right\|+\frac{\left\|-\nabla\hat{U}(\mathbf{x}_i)-\mathbf{a}_i\right\|}{\left\|\mathbf{a}_i\right\|}\right)$  
 where $\nabla\hat{U}(\mathbf{x}_i)$ represents the predicted acceleration and $\mathbf{a}_i$ is the true acceleration.
 
 ## [Testing](test/runTest.m)
 Computes metrics, plots and saves relevant figures comparing performance to the Polyhedral model.
 
-All metrics compute a Mean Percent Error (MPE) \
+All metrics compute a Mean Percent Error (MPE)  
 $L=\frac{1}{N}\sum_{i=0}^N\frac{\left\|\hat{\mathbf{a}}_i-\mathbf{a}_i\right\|}{\left\|\mathbf{a}_i\right\|}\times100$
 
 ### [Generalization](test/plot/plotGeneralization.m)
