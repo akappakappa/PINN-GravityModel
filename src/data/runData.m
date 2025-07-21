@@ -1,8 +1,6 @@
 % This script extracts data from the specified folders and saves it in a dataset.mat file.
 %
-% File: runData.m
-%     entrypoint for Data Extraction
-%     Data is organized in trajectory.data, acceleration.data, and potential.data files.
+%   Data is organized in trajectory.data, acceleration.data, and potential.data files.
 
 baseDir   = "Trajectories/";
 objPath   = "Model/eros_shape_200700.obj";
@@ -212,25 +210,21 @@ clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
 
 
 
+% --- HELPER FUNCTIONS ---
 function data = loadData(path)
-    % LOADDATA  Load Python Pickle data from a file.
-    %   DATA = LOADDATA(PATH) loads the data from the file specified by PATH, casting it to double.
+    % Load Python Pickle data from the file specified by path.
 
     data = double(py.pickle.load(py.open(path, "rb")));
 end
-
 function path = goDeep(path, match)
-    % GODEEP  Travel one level deeper in the directory structure.
-    %   PATH = GODEEP(PATH, MATCH) travels one level deeper in the directory structure, looking for a MATCH in the directory name.
+    % Travel one level deeper in the directory structure by matching subfolder name.
 
     oneDeeper = dir(path);
     oneDeeper = oneDeeper(contains({oneDeeper.name}, match)).name;
     path      = path + oneDeeper + "/";
 end
-
 function matches = listMatchesWithinBounds(path, match, bound)
-    % LISTMATCHESWITHINBOUNDS  List all dataset folders with data within specified bounds.
-    %   MATCHES = LISTMATCHESWITHINBOUNDS(PATH, MATCH, BOUND) lists all dataset folders matching the MATCH string, with data within the specified BOUNDS.
+    % List all dataset folders with data within specified bounds by matching subfolder name and bounds.
 
     list = [];
     for i = bound(1):bound(2) - 1

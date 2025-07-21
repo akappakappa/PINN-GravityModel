@@ -4,10 +4,11 @@ classdef factorizedLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.la
     % Reduces number of learnable parameters, while trying to keep comparable level of expression.
     %
     % factorizedLayer Properties:
-    %    W1, W2     - Learnable low-rank factorized weight matrices
-    %    Bias       - Learnable bias vector
-    %    OutputSize - Number of output neurons
-    %    Rank       - Factorization rank
+    %    W1, W2             - Learnable low-rank factorized weight matrices
+    %    Bias               - Learnable bias vector
+    %    OutputSize         - Number of output neurons
+    %    Rank               - Factorization rank
+    %    WeightsInitializer - Weights initialization as "glorot" (default) or "zeros"
     %
     % factorizedLayer Methods:
     %    initialize - "glorot" (default) or "zeros" weights initialization and zeros bias initialization

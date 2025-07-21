@@ -1,7 +1,13 @@
 % This script tests the performance of the trained model.
 %
-% File: runTest.m
-%     entrypoint for Testing
+%   Plotting 5 metrics
+%       - GENERALIZATION interior
+%       - GENERALIZATION exterior
+%       - GENERALIZATION extrapolation
+%       - SURFACE
+%       - PLANES
+%
+%   ..and comparing them to the Polyhedral model
 
 metricsFolder   = "src/preprocessing/datastore/metrics/";
 headless        = batchStartupOptionUsed;
@@ -37,11 +43,13 @@ fprintf("PLN              : %f\n", mean(PlanesMetric               ));
 [SurfacePoly              , SurfaceRadiusPoly       ] = presets.comparePolyhedral(data.mSurfaceTRJ              , data.mSurfaceACC              , data.mSurfacePOT              , data.pSurfaceTRJ              , data.pSurfaceACC              , data.pSurfacePOT              );
 
 
-% Plotting
+% STOP in batch mode
 if headless
     return;
 end
 
+
+% Single values
 if ~exist("../../fig", 'dir')
     mkdir("../../fig");
 end
@@ -58,30 +66,6 @@ writetable(T, "../../fig/" + nname + "/MTR.csv");
 % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
 plotGeneralization(nname, GeneralizationRadius, GeneralizationMetric, GeneralizationRadiusPoly, GeneralizationPoly);
 
-% TODO: Predict potentials within the network
-%actNN               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'scaleNNPotentialLayer');
-%actLF               = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'analyticModelLayer'   );
-%actFuse             = minibatchpredict(net, data.mGeneralizationTRJ, "Outputs", 'fuseModelsLayer'      );
-%[sortedRadius, idx] = sort(extractdata(GeneralizationRadius));
-%sortedNN            = abs(extractdata(actNN(idx)  ));
-%sortedLF            = abs(extractdata(actLF(idx)  ));
-%sortedFuse          = abs(extractdata(actFuse(idx)));
-
-% TODO: Implement more visualizations
-%figure;
-%hold on;
-%semilogy(sortedRadius, XXX , '.', 'DisplayName', 'XXX');
-
-%set(gca, 'YScale', 'log');
-%xlim([0, 20]);
-%grid on;
-%xline(10, '--', 'R = 10', 'LabelVerticalAlignment', 'bottom');
-%xlabel('XXX');
-%ylabel('XXX');
-%title('XXX');
-%legend('show');
-
-
 % Planes Metric
 plotPlanes(nname, true, data.mPlanesTRJ, PlanesMetric);
 plotPlanes(nname, false, data.pPlanesTRJ, PlanesPoly);
@@ -90,12 +74,15 @@ plotPlanes(nname, false, data.pPlanesTRJ, PlanesPoly);
 plotSurface(nname, true, data.mSurfaceTRJ, SurfaceMetric);
 plotSurface(nname, false, data.pSurfaceTRJ, SurfacePoly);
 
-% clearvars
+
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
 
 
 
+% --- HELPER FUNCTIONS ---
 function data = mLoadData(path)
+    % Load metrics dataset
+
     data = load(path);
     data.mGeneralizationTRJ = cat(1, data.mGeneralizationTRJ_0_1, data.mGeneralizationTRJ_1_10, data.mGeneralizationTRJ_10_100);
     data.mGeneralizationACC = cat(1, data.mGeneralizationACC_0_1, data.mGeneralizationACC_1_10, data.mGeneralizationACC_10_100);

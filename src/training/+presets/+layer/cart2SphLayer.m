@@ -4,7 +4,7 @@ classdef cart2SphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
     % Converts [x,y,z] to [ri,re,s,t,u].
     %
     % cart2SphLayer Methods:
-    %    predict - Computes spherical [ri,re,s,t,u] coordinates, and presents secondary and tertiary output for layers that require direct Radius access
+    %    predict - Computes spherical [ri,re,s,t,u] coordinates, and presents secondary output for layers that require direct Radius access
     %
     % See also presets.layer.analyticModelLayer, presets.layer.applyBoundaryConditionsLayer.
     
@@ -22,16 +22,13 @@ classdef cart2SphLayer < nnet.layer.Layer & nnet.layer.Acceleratable & nnet.laye
         end
 
         function [Spherical, Radius] = predict(~, Trajectory)
-            [x, y, z] = deal(Trajectory(1, :), Trajectory(2, :), Trajectory(3, :));
-            
-            r           = sqrt(x .^ 2 + y .^ 2 + z .^ 2);
-            [s, t, u]   = deal(x ./ r, y ./ r, z ./ r);
-            s(~isfinite(s)) = 0;
-            t(~isfinite(t)) = 0;
-            u(~isfinite(u)) = 0;
-            [ri, re]  = deal(min(r, 1), 1 ./ max(r, 1));
+            r   = vecnorm(Trajectory);
+            stu = Trajectory ./ r ;
+            stu(~isfinite(stu)) = 0;
+            ri  = min(r, 1);
+            re  = 1 ./ max(r, 1);
 
-            Spherical = cat(1, ri, re, s, t, u);
+            Spherical = cat(1, ri, re, stu);
             Radius    = r;
         end
     end

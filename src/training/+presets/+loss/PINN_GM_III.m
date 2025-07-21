@@ -1,5 +1,4 @@
 function [loss, gradients, state] = PINN_GM_III(net, TRJ, ACC, ~, args)
-    % PINN_GM_III ME + MPE
     % Compute Mean Error (ME) + Mean Percentage Error (MPE) loss between true accelerations and predicted ones.
     % Predicted acceleration is obtained with autodiff as the gradients of the predicted potential (Network's output) wrt input coordinates.
 

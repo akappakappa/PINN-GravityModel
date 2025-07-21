@@ -1,7 +1,4 @@
 % This script contains the training loop for the Physics-Informed NN model.
-%
-% File: runTraining.m
-%     entrypoint for Training
 
 executionEnvironment    = "auto";   % Leave as "auto" for GPU training if found, or set to "gpu" or "cpu"
 recoverFromCheckpoint   = false;    % Only set to true if you want to recover from a checkpoint on stopped training
@@ -55,6 +52,7 @@ while epoch < options.numEpochs && ~monitor.Stop
     data.trainACC = data.trainACC(:, rIdxTrain);
     data.trainPOT = data.trainPOT(:, rIdxTrain);
 
+    % Process batches
     numBatches = floor(data.params.split(1) / options.miniBatchSize);
     for batchIdx = 1:numBatches
         iteration = iteration + 1;
@@ -116,16 +114,16 @@ if options.verbose
     fprintf("|========================================================================================|\n");
 end
 
-% Save
+% Save (saves last one as it's stable, can change to bestNet)
 save("net", "net");
 
 clearvars -except DO_DATA_EXTRACTION DO_PREPROCESSING DO_TRAINING DO_TESTING
 
 
 
+% --- HELPER FUNCTIONS ---
 function data = tLoadData(path)
-    % TLOADDATASTORE  Load the data from the specified path.
-    %   DATA = TLOADDATASTORE(PATH) loads the data from the specified path, shuffling the training and validation sets.
+    % Load the data from the specified path.
 
     data = load(path);
 
@@ -137,10 +135,8 @@ function data = tLoadData(path)
     data.validationACC = dlarray(data.validationACC, "BC");
     data.validationPOT = dlarray(data.validationPOT, "BC");
 end
-
 function monitor = tMakeMonitor(headless)
-    % TMAKEMONITOR  Create a training progress monitor.
-    %   MONITOR = TMAKEMONITOR(HEADLESS) creates a training progress monitor, if HEADLESS=true it will create a mock monitor.
+    % Create a training progress monitorm, if headless=true it will create a mock monitor.
 
     if ~headless
         monitor = trainingProgressMonitor( ...

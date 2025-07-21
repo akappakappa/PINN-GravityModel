@@ -1,8 +1,7 @@
 function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, args)
-    % WeightedRadius weight * (ME + MPE)
     % Compute weighted Mean Error (ME) + Mean Percentage Error (MPE) loss between true accelerations and predicted ones.
     % Predicted acceleration is obtained with autodiff as the gradients of the predicted potential (Network's output) wrt input coordinates.
-    % Weights depend on the radius of each sample in the mini-batch.
+    % Weights depend on the radius of each sample in the mini-batch, with asymmetrical gaussian function.
 
     arguments
         net
@@ -21,10 +20,11 @@ function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, args)
 
     loss = AbsoluteLoss + PercentLoss;
 
-    ampl     = 0.5;
-    sigL     = 1;
-    sigR     = 2;
-    peak     = 3;
+    % Asymmetrical gaussian (different L/R behavior)
+    ampl = 0.5;
+    sigL = 1;
+    sigR = 2;
+    peak = 3;
     
     Common = -(Radius - peak) .^ 2 ./ 2;
     WL     = 1 + ampl .* exp(Common ./ (sigL ^ 2));
@@ -33,7 +33,8 @@ function [loss, gradients, state] = WeightedRadius(net, TRJ, ACC, ~, args)
     M = Radius < peak;
     W = M .* WL + ~M .* WR;
 
-    loss  = mean(loss .* W, 2);
+    % Loss weighting
+    loss = mean(loss .* W, 2);
 
     if args.trainingMode
         gradients = dlgradient(loss, net.Learnables);

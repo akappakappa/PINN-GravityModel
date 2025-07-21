@@ -1,6 +1,5 @@
 function data = PINN_GM_III(data)
-    % PINN_GM_III  Preprocess raw data for Physics-Informed Neural Network model training.
-    %   DATA = PINN_GM_III(DATA) preprocesses the raw data by adding extra physical parameters, non-dimensionalizing the data, and splitting it into training and validation sets.
+    % Preprocess raw data for Physics-Informed Neural Network model training.
 
     data = pAddExtraParameters(data);
     data = pNonDimensionalize(data);
@@ -12,27 +11,21 @@ function data = PINN_GM_III(data)
 
 
 
+    % --- HELPER FUNCTIONS ---
     function data = pAddExtraParameters(data)
-        % PADDEXTRAPARAMETERS  Add extra physical parameters to the data structure.
-        %   DATA = PADDEXTRAPARAMETERS(DATA) adds rMax=16'000, mu=g*vol*density and e=sqrt(1 - b ^ 2 / a ^ 2).
+        % Add extra physical parameters to the data structure: rMax=16'000, mu=g*vol*density.
 
-        % Radius Max
-        data.params.rMax = 16000;   % Eros radius
-
-        % Mu
-        g              = 6.67430e-11;
-        vol            = 2525994603183.156;   % from 8k file in dataset https://github.com/MartinAstro/GravNN
-        density        = 2670;                % https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=eros
-        data.params.mu = g * vol * density;
+        data.params.rMax = 16000;               % Eros max radius
+        g                = 6.67430e-11;         % Eros G
+        vol              = 2525994603183.156;   % from 8k file in dataset https://github.com/MartinAstro/GravNN
+        density          = 2670;                % https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=eros
+        data.params.mu   = g * vol * density;   % mu=G*M
     end
-
     function data = pNonDimensionalize(data)
-        % PNONDIMENSIONALIZE  Non-dimensionalize the data.
-        %   DATA = PNONDIMENSIONALIZE(DATA) scales the data to be non-dimensional by dividing it by specific values derived from physical Eros properties.
+        % Non-dimensionalize the data with x-star,a-star,u-star,t-star
         
-        % Values for the non-dimensionalization derived from Eros model
         sTRJ  = data.params.rMax;
-        Ulf   = -data.params.mu ./ sqrt(                                 ...
+        Ulf   = -data.params.mu ./ sqrt( ...   % Quickly evaluate point-mass potential
             cat(1, data.tSurfaceTRJ(:, 1), data.tRandomTRJ(:, 1)) .^ 2 + ...
             cat(1, data.tSurfaceTRJ(:, 2), data.tRandomTRJ(:, 2)) .^ 2 + ...
             cat(1, data.tSurfaceTRJ(:, 3), data.tRandomTRJ(:, 3)) .^ 2   ...
@@ -91,10 +84,8 @@ function data = PINN_GM_III(data)
         % Scale parameters
         data.params.mu = data.params.mu / sMU;
     end
-
     function data = pMakeValidationSet(data)
-        % PMAKEVALIDATIONSET  Split the data into training and validation sets.
-        %   DATA = PMAKEVALIDATIONSET(DATA) shuffles the data and splits it into training and validation sets based on the specified split percentage.
+        % Split the data into training and validation sets, following specified percentage.
 
         % Generate shuffle indexes
         pSurfaceIdx = randperm(size(data.tSurfaceTRJ, 1));

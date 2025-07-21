@@ -1,4 +1,6 @@
 function [loss, Radius] = comparePolyhedral(TRJ, ACC, ~, pTRJ, pACC, ~)
+    % Mean Percentage Error (MPE) loss function for the Polyhedral model.
+
     arguments
         TRJ
         ACC
@@ -7,9 +9,7 @@ function [loss, Radius] = comparePolyhedral(TRJ, ACC, ~, pTRJ, pACC, ~)
         pACC
         ~
     end
-    % comparePolyhedral  Mean Percentage Error (MPE) loss function for the Polyhedral model.
-    %   [LOSS, RADIUS] = COMPAREPOLYHEDRAL(TRJ, ACC, ~, PTRJ, PACC, ~) computes the loss for the Polyhedral model as the mean of the sum of Mean Percentage Error (MPE) between the predicted and the actual acceleration.
-
+    
     % Radius
     assert(isequal(TRJ, pTRJ), "Comparing different Trajectory vectors");
     [x, y, z] = deal(TRJ(1, :), TRJ(2, :), TRJ(3, :));

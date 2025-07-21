@@ -1,5 +1,6 @@
 function [] = plotGeneralization(nname, GeneralizationRadius, GeneralizationMetric, GeneralizationRadiusPoly, GeneralizationPoly)
     % Generalization: mpeLoss vs. distance(R), convert mpeLoss in log scale
+    
     figure;
     hold on;
     xregion(0 , 1  , "FaceColor", [ 99  99  99] ./ 255, "EdgeColor", [0.5 0.5 0.5], "DisplayName", "Interior"     );
