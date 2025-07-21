@@ -27,11 +27,11 @@ Computes metrics, plots and saves relevant figures comparing performance to the 
 All metrics compute a Mean Percent Error (MPE) \
 $L=\frac{1}{N}\sum_{i=0}^N\frac{\left\|\hat{\mathbf{a}}_i-\mathbf{a}_i\right\|}{\left\|\mathbf{a}_i\right\|}\times100$
 
-### [Generalization](test/+presets/generalization.m)
+### [Generalization](test/plot/plotGeneralization.m)
 500 samples per unit of radius in 0:100R (50'000 total), evaluated separately depending on the altitude as **interior**, **exterior** and **extrapolation** (0:1R, 1:10R, 10:100R respectively).
 
-### [Planes](test/+presets/planes.m)
+### [Planes](test/plot/plotPlanes.m)
 Samples along the three Cartesian planes XY, XZ, YZ between [-5R, 5R] displaced in 200*200 grids.
 
-### [Surface](test/+presets/surface.m)
+### [Surface](test/plot/plotSurface.m)
 ~200'000 samples on the surface of the asteroid, one in the centre of each facet of the shape model.
