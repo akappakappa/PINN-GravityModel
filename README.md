@@ -6,7 +6,7 @@ Read the [code overview](src/README.md) for implementation details.
 This project focuses on modeling the gravitational field of the asteroid **433 Eros** through a modified [PINN-GM-III architecture](https://arxiv.org/pdf/2312.10257).
 
 ### Dataset
-Ground truth values are generated using the [GravNN](https://github.com/MartinAstro/GravNN) library, with a [custom script](./src/data/GravNN/Scripts/Data/custom.py).  
+Ground truth values are generated using the [GravNN](https://github.com/MartinAstro/GravNN) library, with a [custom script](src/data/GravNN/Scripts/Data/custom.py).  
 Such operation generates `(x,a,u)` values using a heterogeneous-density polyhedral gravity model, computed as the superimposition of a typical constant-density polyhedral model and 2 point-mass models (+/- mass) displaced on the x-axis.  
 <img src="utils/erosModelHeterogeneous.png" alt="Gravity field of 433 Eros" style="width: 50%; min-width: 100px; max-width: 500px;" />
 
@@ -26,7 +26,7 @@ This project implements [PINN-GM-III](https://arxiv.org/pdf/2312.10257) in MATLA
 7. Radius-based weighting of the loss during training to focus specific altitudes
 
 ## Instructions
-Run the [main script](main.m) from the root folder in GUI mode.  
+Run the [main script](src/main.m) from the root folder in GUI mode.  
 Alternatively run with SLURM in batch mode as:
 ```
 cd path/to/PINN-GravityModel
