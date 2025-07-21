@@ -25,7 +25,13 @@ This project implements [PINN-GM-III](https://arxiv.org/pdf/2312.10257) in MATLA
 6. Tweaking power of the *learned potential* vs *analytic potential* inside the network
 7. Radius-based weighting of the loss during training to focus specific altitudes
 
-
+## Instructions
+Run the [main script](main.m) from the root folder in GUI mode.  
+Alternatively run with SLURM in batch mode as:
+```
+cd path/to/PINN-GravityModel
+srun matlab -batch "run('src/main.m')"
+```
 
 ## Authors
 [Andrea Valentinuzzi](github.com/akappakappa), [Giovanni Brejc](github.com/Govawi)  
