@@ -8,10 +8,7 @@ Extracts python-pickle data from the [dataset folder](data/Trajectories/), gener
 **NOTE** set [DO_DATA_EXTRACTION](main.m#L15) to `false` to skip the execution of this file, if you don't want to install the required Python dependencies, as pre-extracted data is included in the repo.
 
 ## [Preprocessing](preprocessing/runPreprocessing.m)
-Computes $\mu=GM$ parameter for the Low-Fidelity Analytical Model that will be fused to the Neural Network predictions.  
-Non-dimensionalizes the dataset according to  
-
-Splits the dataset with a ratio 99:1 into training:validation sets.
+Computes $\mu=GM$ parameter for the Low-Fidelity Analytical Model that will be fused to the Neural Network predictions, performs non-dimensionalization, finally splits the dataset with a ratio 99:1 into training:validation sets.
 
 **NOTE** set [DO_PREPROCESSING](main.m#L16) to `false` to skip the execution of this file, as pre-extracted data is included in the repo.
 
