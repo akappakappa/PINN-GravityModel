@@ -11,6 +11,7 @@ Extracts python-pickle data from the [dataset folder](data/Trajectories/), gener
 Computes $\mu=GM$ parameter for the Low-Fidelity Analytical Model that will be fused to the Neural Network predictions.  
 Non-dimensionalizes the dataset according to  
 $x^*=R,\quad U^*=max_i(|\bar{U}_i-\bar{U}_{LF,i}|),\quad a^*=\frac{x^*}{{t^*}^2},\quad t^*=\sqrt{\frac{{x^*}^2}{U^*}}$  
+
 Splits the dataset with a ratio 99:1 into training:validation sets.
 
 **NOTE** set [DO_PREPROCESSING](main.m#L16) to `false` to skip the execution of this file, as pre-extracted data is included in the repo.
