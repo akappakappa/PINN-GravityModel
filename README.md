@@ -34,5 +34,5 @@ srun matlab -batch "run('src/main.m')"
 ```
 
 ## Authors
-[Andrea Valentinuzzi](github.com/akappakappa), [Giovanni Brejc](github.com/Govawi)  
+[Andrea Valentinuzzi](https://github.com/akappakappa), [Giovanni Brejc](https://github.com/Govawi)  
 Computer Engineering at Unversity of Padua, Italy
