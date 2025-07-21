@@ -26,6 +26,9 @@ This project implements [PINN-GM-III](https://arxiv.org/pdf/2312.10257) in MATLA
 7. Radius-based weighting of the loss during training to focus specific altitudes
 
 ## Instructions
+1. MATLAB R2025a + `Deep Learning Toolbox` and `Parallel Computing Toolbox`
+2. Python `trimesh` and `numpy` (only if running with [`DO_DATA_EXTRACTION=true`](src/main.m#L15))
+
 Run the [main script](src/main.m) from the root folder in GUI mode.  
 Alternatively run with SLURM in batch mode as:
 ```

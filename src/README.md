@@ -1,5 +1,4 @@
 # Code preview
-MATLAB R2025a is used for the implementation of the project.  
 The code entry-point is [main](main.m), which conditionally launches all the routines.
 
 ## [Data Extraction](data/runData.m)
