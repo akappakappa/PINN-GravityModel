@@ -3,7 +3,7 @@ This Master's Thesis project is about the application of Physics-Informed Neural
 
 ## Overview
 Read the [code overview](src/README.md) for implementation details. \
-This project focuses on modeling the gravitational field of the asteroid **433 Eros** throught a modified [PINN-GM-III architecture](https://arxiv.org/pdf/2312.10257).
+This project focuses on modeling the gravitational field of the asteroid **433 Eros** through a modified [PINN-GM-III architecture](https://arxiv.org/pdf/2312.10257).
 
 ### Dataset
 Ground truth values are generated using the [GravNN](https://github.com/MartinAstro/GravNN) library, with a [custom script](./src/data/GravNN/Scripts/Data/custom.py). \
